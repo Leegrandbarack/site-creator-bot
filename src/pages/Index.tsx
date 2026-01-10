@@ -1,6 +1,24 @@
+import { useState } from "react";
 import LoginForm from "@/components/LoginForm";
+import VerificationPage from "@/components/VerificationPage";
 
 const Index = () => {
+  const [showVerification, setShowVerification] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+
+  const handleSignupComplete = (phone: string) => {
+    setPhoneNumber(phone);
+    setShowVerification(true);
+  };
+
+  const handleBackToSignup = () => {
+    setShowVerification(false);
+  };
+
+  if (showVerification) {
+    return <VerificationPage phoneNumber={phoneNumber} onBack={handleBackToSignup} />;
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Main Content */}
@@ -18,7 +36,7 @@ const Index = () => {
 
           {/* Right Side - Login Form */}
           <div className="w-full max-w-md">
-            <LoginForm />
+            <LoginForm onSignupComplete={handleSignupComplete} />
             <p className="text-center text-sm text-foreground mt-6">
               <a href="#" className="font-bold hover:underline">
                 Créer une Page

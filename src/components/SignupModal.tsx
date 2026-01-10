@@ -20,9 +20,10 @@ import { HelpCircle } from "lucide-react";
 interface SignupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSignupComplete?: (phoneNumber: string) => void;
 }
 
-const SignupModal = ({ open, onOpenChange }: SignupModalProps) => {
+const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [day, setDay] = useState("10");
@@ -35,6 +36,10 @@ const SignupModal = ({ open, onOpenChange }: SignupModalProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Signup attempt:", { firstName, lastName, day, month, year, gender, emailOrPhone, password });
+    if (onSignupComplete && emailOrPhone) {
+      onSignupComplete(emailOrPhone);
+      onOpenChange(false);
+    }
   };
 
   const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
