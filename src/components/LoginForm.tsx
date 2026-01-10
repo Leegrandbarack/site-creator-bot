@@ -3,7 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SignupModal from "./SignupModal";
 
-const LoginForm = () => {
+interface LoginFormProps {
+  onSignupComplete?: (phoneNumber: string) => void;
+}
+
+const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showSignup, setShowSignup] = useState(false);
@@ -61,7 +65,11 @@ const LoginForm = () => {
         </div>
       </div>
 
-      <SignupModal open={showSignup} onOpenChange={setShowSignup} />
+      <SignupModal 
+        open={showSignup} 
+        onOpenChange={setShowSignup} 
+        onSignupComplete={onSignupComplete}
+      />
     </>
   );
 };
