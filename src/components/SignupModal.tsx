@@ -15,7 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface SignupModalProps {
   open: boolean;
@@ -32,13 +34,46 @@ const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps)
   const [gender, setGender] = useState("");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup attempt:", { firstName, lastName, day, month, year, gender, emailOrPhone, password });
-    if (onSignupComplete && emailOrPhone) {
-      onSignupComplete(emailOrPhone);
-      onOpenChange(false);
+    
+    if (!emailOrPhone) {
+      toast.error("Veuillez entrer un numéro de téléphone ou email");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Send OTP to the phone number
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { phone_number: emailOrPhone }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success("Code de vérification envoyé!");
+        
+        // Log the code in development (shown in console)
+        if (data.code) {
+          console.log("🔐 Code de vérification (dev):", data.code);
+        }
+        
+        if (onSignupComplete) {
+          onSignupComplete(emailOrPhone);
+          onOpenChange(false);
+        }
+      } else {
+        throw new Error(data.error || "Erreur lors de l'envoi du code");
+      }
+    } catch (error: any) {
+      console.error("Erreur:", error);
+      toast.error(error.message || "Erreur lors de l'envoi du code");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,9 +220,17 @@ const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps)
           <div className="flex justify-center pt-2">
             <Button
               type="submit"
+              disabled={isLoading}
               className="h-9 px-16 text-lg font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground"
             >
-              S'inscrire
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Envoi...
+                </>
+              ) : (
+                "S'inscrire"
+              )}
             </Button>
           </div>
 
