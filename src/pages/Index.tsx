@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginForm from "@/components/LoginForm";
 import VerificationPage from "@/components/VerificationPage";
+import OTPVerificationForm from "@/components/OTPVerificationForm";
 
 const Index = () => {
   const [showVerification, setShowVerification] = useState(false);
@@ -23,33 +25,36 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-5xl flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8 lg:gap-16">
-          {/* Left Side - Branding */}
-          <div className="text-center lg:text-left lg:pt-10 max-w-md">
-            <h1 className="text-primary text-5xl lg:text-6xl font-bold tracking-tight mb-4">
-              facebook
+        <div className="w-full max-w-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-primary text-4xl font-bold tracking-tight mb-2">
+              Système de Vérification OTP
             </h1>
-            <p className="text-foreground text-xl lg:text-2xl leading-relaxed">
-              Avec Facebook, partagez et restez en contact avec votre entourage.
+            <p className="text-muted-foreground">
+              Démonstration de l'authentification par SMS
             </p>
           </div>
 
-          {/* Right Side - Login Form */}
-          <div className="w-full max-w-md">
-            <LoginForm onSignupComplete={handleSignupComplete} />
-            <p className="text-center text-sm text-foreground mt-6">
-              <a href="#" className="font-bold hover:underline">
-                Créer une Page
-              </a>{" "}
-              pour une célébrité, une marque ou une entreprise.
-            </p>
-          </div>
+          <Tabs defaultValue="otp" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="otp">Vérification OTP</TabsTrigger>
+              <TabsTrigger value="login">Connexion classique</TabsTrigger>
+            </TabsList>
+            <TabsContent value="otp">
+              <OTPVerificationForm />
+            </TabsContent>
+            <TabsContent value="login">
+              <div className="max-w-md mx-auto">
+                <LoginForm onSignupComplete={handleSignupComplete} />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="text-center py-6 text-xs text-muted-foreground">
-        <p>Clone Facebook - Projet de démonstration</p>
+        <p>Projet de démonstration - Vérification OTP</p>
       </footer>
     </div>
   );
