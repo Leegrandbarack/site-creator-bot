@@ -22,7 +22,7 @@ import { toast } from "sonner";
 interface SignupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSignupComplete?: (phoneNumber: string) => void;
+  onSignupComplete?: (phoneNumber: string, devCode?: string) => void;
 }
 
 const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps) => {
@@ -63,15 +63,15 @@ const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps)
       if (error) throw error;
 
       if (data.success) {
-        toast.success("Code de vérification envoyé!");
-        
-        // Log the code in development (shown in console)
-        if (data.code) {
-          console.log("🔐 Code de vérification (dev):", data.code);
+        // Show the dev code in toast for testing (since no real SMS is sent)
+        if (data.devCode) {
+          toast.success(`Code envoyé! (Dev: ${data.devCode})`);
+        } else {
+          toast.success("Code de vérification envoyé!");
         }
         
         if (onSignupComplete) {
-          onSignupComplete(cleanPhone);
+          onSignupComplete(cleanPhone, data.devCode);
           onOpenChange(false);
         }
       } else {

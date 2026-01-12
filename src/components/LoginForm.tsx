@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import SignupModal from "./SignupModal";
 
 interface LoginFormProps {
-  onSignupComplete?: (phoneNumber: string) => void;
+  onSignupComplete?: (phoneNumber: string, devCode?: string) => void;
 }
 
 const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
