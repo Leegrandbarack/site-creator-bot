@@ -32,15 +32,23 @@ const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps)
   const [month, setMonth] = useState("jan");
   const [year, setYear] = useState("2026");
   const [gender, setGender] = useState("");
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!emailOrPhone) {
-      toast.error("Veuillez entrer un numéro de téléphone ou email");
+    if (!phone) {
+      toast.error("Veuillez entrer un numéro de téléphone");
+      return;
+    }
+
+    // Validate phone number format (at least 8 digits)
+    const cleanPhone = phone.replace(/\s/g, '');
+    if (cleanPhone.length < 8 || !/^\+?[0-9]+$/.test(cleanPhone)) {
+      toast.error("Numéro de téléphone invalide. Utilisez le format: +229XXXXXXXX");
       return;
     }
 
@@ -49,7 +57,7 @@ const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps)
     try {
       // Send OTP to the phone number
       const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: { phone_number: emailOrPhone }
+        body: { phoneNumber: cleanPhone }
       });
 
       if (error) throw error;
@@ -63,7 +71,7 @@ const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps)
         }
         
         if (onSignupComplete) {
-          onSignupComplete(emailOrPhone);
+          onSignupComplete(cleanPhone);
           onOpenChange(false);
         }
       } else {
@@ -190,9 +198,18 @@ const SignupModal = ({ open, onOpenChange, onSignupComplete }: SignupModalProps)
           </div>
 
           <Input
-            placeholder="Numéro mobile ou e-mail"
-            value={emailOrPhone}
-            onChange={(e) => setEmailOrPhone(e.target.value)}
+            type="tel"
+            placeholder="Numéro de téléphone (ex: +22997123456)"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="h-10 text-sm bg-input border-border"
+          />
+
+          <Input
+            type="email"
+            placeholder="Adresse e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="h-10 text-sm bg-input border-border"
           />
 
