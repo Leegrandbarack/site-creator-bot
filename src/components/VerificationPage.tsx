@@ -7,11 +7,13 @@ import { Loader2, CheckCircle } from "lucide-react";
 
 interface VerificationPageProps {
   phoneNumber: string;
+  devCode?: string | null;
   onBack: () => void;
 }
 
-const VerificationPage = ({ phoneNumber, onBack }: VerificationPageProps) => {
+const VerificationPage = ({ phoneNumber, devCode: initialDevCode, onBack }: VerificationPageProps) => {
   const [code, setCode] = useState("");
+  const [devCode, setDevCode] = useState<string | null>(initialDevCode || null);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -26,7 +28,7 @@ const VerificationPage = ({ phoneNumber, onBack }: VerificationPageProps) => {
 
     try {
       const { data, error } = await supabase.functions.invoke('verify-otp', {
-        body: { phone_number: phoneNumber, code }
+        body: { phoneNumber, code }
       });
 
       if (error) throw error;
@@ -50,15 +52,15 @@ const VerificationPage = ({ phoneNumber, onBack }: VerificationPageProps) => {
 
     try {
       const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: { phone_number: phoneNumber }
+        body: { phoneNumber }
       });
 
       if (error) throw error;
 
       if (data.success) {
         toast.success("Nouveau code envoyé!");
-        if (data.code) {
-          console.log("🔐 Nouveau code (dev):", data.code);
+        if (data.devCode) {
+          setDevCode(data.devCode);
         }
       } else {
         throw new Error(data.error || "Erreur lors de l'envoi");
@@ -128,6 +130,14 @@ const VerificationPage = ({ phoneNumber, onBack }: VerificationPageProps) => {
             Indiquez que ce numéro de mobile vous appartient. Entrez le code du SMS envoyé au{" "}
             <span className="font-bold text-foreground">{phoneNumber}</span>.
           </p>
+
+          {devCode && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>🔐 Mode dev:</strong> Votre code est <span className="font-mono font-bold text-lg">{devCode}</span>
+              </p>
+            </div>
+          )}
 
           <div className="mb-3">
             <div className="relative">

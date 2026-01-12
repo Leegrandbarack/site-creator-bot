@@ -5,18 +5,21 @@ import VerificationPage from "@/components/VerificationPage";
 const Index = () => {
   const [showVerification, setShowVerification] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [devCode, setDevCode] = useState<string | null>(null);
 
-  const handleSignupComplete = (phone: string) => {
+  const handleSignupComplete = (phone: string, code?: string) => {
     setPhoneNumber(phone);
+    setDevCode(code || null);
     setShowVerification(true);
   };
 
   const handleBackToSignup = () => {
     setShowVerification(false);
+    setDevCode(null);
   };
 
   if (showVerification) {
-    return <VerificationPage phoneNumber={phoneNumber} onBack={handleBackToSignup} />;
+    return <VerificationPage phoneNumber={phoneNumber} devCode={devCode} onBack={handleBackToSignup} />;
   }
 
   return (
