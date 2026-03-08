@@ -31,7 +31,7 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
     ? `${conversation.participant.first_name || "Utilisateur"} ${conversation.participant.last_name || ""}`.trim()
     : "Utilisateur";
 
-  const participantAvatar = conversation.participant?.avatar_url || `https://i.pravatar.cc/150?u=${conversation.participant?.user_id}`;
+  const participantAvatar = conversation.participant?.avatar_url || undefined;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

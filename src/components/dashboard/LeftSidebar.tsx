@@ -24,11 +24,7 @@ const menuItems = [
   { icon: Settings, label: "Paramètres", color: "text-muted-foreground", path: "/settings" },
 ];
 
-const shortcuts = [
-  { name: "Groupe Développeurs", avatar: "https://i.pravatar.cc/80?img=60", path: "/dashboard" },
-  { name: "Club Gaming", avatar: "https://i.pravatar.cc/80?img=61", path: "/dashboard" },
-  { name: "Communauté Design", avatar: "https://i.pravatar.cc/80?img=62", path: "/dashboard" },
-];
+const shortcuts: { name: string; avatar: string; path: string }[] = [];
 
 const LeftSidebar = ({ user }: LeftSidebarProps) => {
   const navigate = useNavigate();

@@ -74,7 +74,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers, onNe
             const name = conv.participant
               ? `${conv.participant.first_name || "Utilisateur"} ${conv.participant.last_name || ""}`.trim()
               : "Utilisateur";
-            const avatarUrl = conv.participant?.avatar_url || `https://i.pravatar.cc/150?u=${conv.participant?.user_id}`;
+            const avatarUrl = conv.participant?.avatar_url || undefined;
             const isOnline = conv.participant ? onlineUsers.has(conv.participant.user_id) : false;
             const isActive = conv.id === activeId;
 

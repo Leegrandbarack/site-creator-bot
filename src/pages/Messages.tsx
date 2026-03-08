@@ -14,7 +14,7 @@ const Messages = () => {
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [showNewConv, setShowNewConv] = useState(false);
-  const [userInfo, setUserInfo] = useState({ name: "Utilisateur", firstName: "U", avatar: "https://i.pravatar.cc/150?img=3" });
+  const [userInfo, setUserInfo] = useState({ name: "Utilisateur", firstName: "U", avatar: "" });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -49,7 +49,7 @@ const Messages = () => {
         setUserInfo({
           name,
           firstName: profile.first_name || "U",
-          avatar: profile.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          avatar: profile.avatar_url || "",
         });
       }
       setIsReady(true);

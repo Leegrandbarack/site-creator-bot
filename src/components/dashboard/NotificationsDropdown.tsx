@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, UserPlus, UserCheck, Check, X, Heart, MessageCircle, MessageSquare, ThumbsUp } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -14,6 +14,31 @@ interface NotificationsDropdownProps {
 const NotificationsDropdown = ({ userId }: NotificationsDropdownProps) => {
   const [open, setOpen] = useState(false);
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications(userId);
+  const [profiles, setProfiles] = useState<Record<string, { name: string; avatar: string | null }>>({});
+
+  // Fetch profiles for notification senders
+  useEffect(() => {
+    const fromIds = [...new Set(notifications.map(n => n.from_user_id).filter(Boolean))] as string[];
+    if (fromIds.length === 0) return;
+
+    const fetchProfiles = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, first_name, last_name, avatar_url")
+        .in("user_id", fromIds);
+      if (data) {
+        const map: Record<string, { name: string; avatar: string | null }> = {};
+        data.forEach(p => {
+          map[p.user_id] = {
+            name: [p.first_name, p.last_name].filter(Boolean).join(" ") || "Utilisateur",
+            avatar: p.avatar_url,
+          };
+        });
+        setProfiles(map);
+      }
+    };
+    fetchProfiles();
+  }, [notifications]);
 
   const handleAcceptFriend = async (notif: any) => {
     if (!notif.reference_id) return;
@@ -50,9 +75,9 @@ const NotificationsDropdown = ({ userId }: NotificationsDropdownProps) => {
       case "friend_accepted": return <UserCheck className="w-4 h-4 text-green-500" />;
       case "post_like": return <Heart className="w-4 h-4 text-destructive" />;
       case "comment_like": return <ThumbsUp className="w-4 h-4 text-primary" />;
-      case "post_comment": return <MessageCircle className="w-4 h-4 text-blue-500" />;
-      case "comment_reply": return <MessageCircle className="w-4 h-4 text-violet-500" />;
-      case "message": return <MessageSquare className="w-4 h-4 text-green-500" />;
+      case "post_comment": return <MessageCircle className="w-4 h-4 text-primary" />;
+      case "comment_reply": return <MessageCircle className="w-4 h-4 text-primary" />;
+      case "message": return <MessageSquare className="w-4 h-4 text-primary" />;
       default: return <Bell className="w-4 h-4 text-muted-foreground" />;
     }
   };
@@ -61,11 +86,11 @@ const NotificationsDropdown = ({ userId }: NotificationsDropdownProps) => {
     switch (type) {
       case "post_like": return "bg-destructive/10";
       case "comment_like": return "bg-primary/10";
-      case "post_comment": return "bg-blue-500/10";
-      case "comment_reply": return "bg-violet-500/10";
+      case "post_comment": return "bg-primary/10";
+      case "comment_reply": return "bg-primary/10";
       case "friend_request": return "bg-primary/10";
-      case "friend_accepted": return "bg-green-500/10";
-      case "message": return "bg-green-500/10";
+      case "friend_accepted": return "bg-primary/10";
+      case "message": return "bg-primary/10";
       default: return "bg-muted";
     }
   };
@@ -104,55 +129,60 @@ const NotificationsDropdown = ({ userId }: NotificationsDropdownProps) => {
                   <p className="text-sm text-muted-foreground">Aucune notification</p>
                 </div>
               ) : (
-                notifications.map((notif, index) => (
-                  <div
-                    key={notif.id}
-                    className={`flex items-start gap-3 p-3 hover:bg-muted/50 transition-all duration-200 cursor-pointer ${
-                      !notif.is_read ? "bg-primary/5" : ""
-                    }`}
-                    style={{ animationDelay: `${index * 50}ms` }}
-                    onClick={() => !notif.is_read && markRead(notif.id)}
-                  >
-                    <div className="relative shrink-0">
-                      <Avatar className="w-10 h-10 ring-2 ring-background">
-                        <AvatarImage src={`https://i.pravatar.cc/150?u=${notif.from_user_id}`} />
-                        <AvatarFallback>U</AvatarFallback>
-                      </Avatar>
-                      <span className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center ${getIconBg(notif.type)}`}>
-                        {getIcon(notif.type)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground leading-snug">
-                        <span className="font-semibold">Utilisateur</span>{" "}
-                        {notif.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: fr })}
-                      </p>
+                notifications.map((notif, index) => {
+                  const sender = notif.from_user_id ? profiles[notif.from_user_id] : null;
+                  return (
+                    <div
+                      key={notif.id}
+                      className={`flex items-start gap-3 p-3 hover:bg-muted/50 transition-all duration-200 cursor-pointer ${
+                        !notif.is_read ? "bg-primary/5" : ""
+                      }`}
+                      style={{ animationDelay: `${index * 50}ms` }}
+                      onClick={() => !notif.is_read && markRead(notif.id)}
+                    >
+                      <div className="relative shrink-0">
+                        <Avatar className="w-10 h-10 ring-2 ring-background">
+                          <AvatarImage src={sender?.avatar || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {(sender?.name?.[0] || "U").toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center ${getIconBg(notif.type)}`}>
+                          {getIcon(notif.type)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground leading-snug">
+                          <span className="font-semibold">{sender?.name || "Utilisateur"}</span>{" "}
+                          {notif.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: fr })}
+                        </p>
 
-                      {notif.type === "friend_request" && !notif.is_read && (
-                        <div className="flex gap-2 mt-2">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleAcceptFriend(notif); }}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors"
-                          >
-                            <Check className="w-3 h-3" /> Accepter
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleRejectFriend(notif); }}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-muted text-foreground text-xs font-medium rounded-lg hover:bg-muted/80 transition-colors"
-                          >
-                            <X className="w-3 h-3" /> Refuser
-                          </button>
-                        </div>
+                        {notif.type === "friend_request" && !notif.is_read && (
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleAcceptFriend(notif); }}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                            >
+                              <Check className="w-3 h-3" /> Accepter
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRejectFriend(notif); }}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-muted text-foreground text-xs font-medium rounded-lg hover:bg-muted/80 transition-colors"
+                            >
+                              <X className="w-3 h-3" /> Refuser
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {!notif.is_read && (
+                        <span className="w-2.5 h-2.5 bg-primary rounded-full shrink-0 mt-1.5 animate-pulse" />
                       )}
                     </div>
-                    {!notif.is_read && (
-                      <span className="w-2.5 h-2.5 bg-primary rounded-full shrink-0 mt-1.5 animate-pulse" />
-                    )}
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

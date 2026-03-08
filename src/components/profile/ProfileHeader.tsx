@@ -60,7 +60,7 @@ const ProfileHeader = ({ profileUserId, currentUserId, isOwnProfile }: ProfileHe
     ? [profile.first_name, profile.last_name].filter(Boolean).join(" ") || profile.username || "Utilisateur"
     : "Utilisateur";
 
-  const avatarUrl = profile?.avatar_url || `https://i.pravatar.cc/150?u=${profileUserId}`;
+  const avatarUrl = profile?.avatar_url || undefined;
   const coverUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=940&h=350&fit=crop";
 
   const handleFollow = () => {
