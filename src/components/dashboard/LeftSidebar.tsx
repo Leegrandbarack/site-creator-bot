@@ -17,9 +17,12 @@ const shortcuts = [
 
 const LeftSidebar = ({ user }: LeftSidebarProps) => {
   return (
+  const navigate = useNavigate();
+
+  return (
     <div className="space-y-1">
       {/* User Profile Link */}
-      <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group">
+      <button onClick={() => navigate("/profile")} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group">
         <Avatar className="w-9 h-9 group-hover:ring-2 group-hover:ring-primary/20 transition-all">
           <AvatarImage src={user.avatar} alt={user.name} />
           <AvatarFallback>{user.firstName[0]}</AvatarFallback>
