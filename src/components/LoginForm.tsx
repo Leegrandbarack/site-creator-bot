@@ -4,13 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import SignupModal from "./SignupModal";
 
-interface LoginFormProps {
-  onSignupComplete?: (phoneNumber: string, devCode?: string) => void;
-}
-
-const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
+const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,14 +16,30 @@ const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // Connexion anonyme rapide - n'importe qui peut se connecter
-    const { error } = await supabase.auth.signInAnonymously();
-    setLoading(false);
-    if (error) {
-      toast.error("Erreur de connexion, réessayez");
+    if (!email.trim() || !password.trim()) {
+      toast.error("Veuillez remplir tous les champs");
       return;
     }
+
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    setLoading(false);
+
+    if (error) {
+      if (error.message.includes("Invalid login")) {
+        toast.error("Email ou mot de passe incorrect");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+    navigate("/dashboard");
+  };
+
+  const handleSignupComplete = () => {
     navigate("/dashboard");
   };
 
@@ -35,8 +48,8 @@ const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
       <div className="bg-card rounded-lg shadow-lg p-4 w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input
-            type="text"
-            placeholder="Adresse e-mail ou numéro de tél."
+            type="email"
+            placeholder="Adresse e-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-12 text-base border-border focus:border-primary"
@@ -53,7 +66,14 @@ const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
             disabled={loading}
             className="w-full h-12 text-xl font-bold bg-primary hover:bg-primary/90"
           >
-            {loading ? "Connexion..." : "Se connecter"}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Connexion...
+              </>
+            ) : (
+              "Se connecter"
+            )}
           </Button>
         </form>
 
@@ -76,10 +96,10 @@ const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
         </div>
       </div>
 
-      <SignupModal 
-        open={showSignup} 
-        onOpenChange={setShowSignup} 
-        onSignupComplete={onSignupComplete}
+      <SignupModal
+        open={showSignup}
+        onOpenChange={setShowSignup}
+        onSignupComplete={handleSignupComplete}
       />
     </>
   );

@@ -1,33 +1,23 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/LoginForm";
-import VerificationPage from "@/components/VerificationPage";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const [showVerification, setShowVerification] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [devCode, setDevCode] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const handleSignupComplete = (phone: string, code?: string) => {
-    setPhoneNumber(phone);
-    setDevCode(code || null);
-    setShowVerification(true);
-  };
-
-  const handleBackToSignup = () => {
-    setShowVerification(false);
-    setDevCode(null);
-  };
-
-  if (showVerification) {
-    return <VerificationPage phoneNumber={phoneNumber} devCode={devCode} onBack={handleBackToSignup} />;
-  }
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && !session.user.is_anonymous) {
+        navigate("/dashboard");
+      }
+    });
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-muted flex flex-col">
-      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="max-w-5xl w-full flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-16 py-10">
-          {/* Left side - Branding */}
           <div className="text-center lg:text-left lg:flex-1 lg:pt-10">
             <svg viewBox="0 0 36 36" className="w-16 h-16 fill-primary mx-auto lg:mx-0 mb-4">
               <path d="M20.181 35.87C29.094 34.791 36 27.202 36 18c0-9.941-8.059-18-18-18S0 8.059 0 18c0 4.991 2.032 9.508 5.312 12.755V35l4.898-2.724A17.9 17.9 0 0 0 18 33.6c.725 0 1.439-.043 2.139-.126l.042-.005Z"/>
@@ -38,9 +28,8 @@ const Index = () => {
             </h1>
           </div>
 
-          {/* Right side - Login Form */}
           <div className="w-full max-w-md">
-            <LoginForm onSignupComplete={handleSignupComplete} />
+            <LoginForm />
             <p className="text-center text-sm text-muted-foreground mt-6">
               <a href="#" className="font-bold text-foreground hover:underline">Créer une Page</a>
               {" "}pour une célébrité, une marque ou une entreprise.
@@ -49,7 +38,6 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="bg-card py-6 px-4 text-xs text-muted-foreground">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-wrap gap-2 mb-3">

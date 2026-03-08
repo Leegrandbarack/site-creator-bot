@@ -11,7 +11,7 @@ interface LeftSidebarProps {
 const menuItems = [
   { icon: Newspaper, label: "Fil d'actualité", color: "text-primary", path: "/dashboard" },
   { icon: MessageCircle, label: "Discussions", color: "text-primary", path: "/messages" },
-  { icon: Users, label: "Amis", color: "text-primary", path: "/dashboard" },
+  { icon: Users, label: "Utilisateurs", color: "text-primary", path: "/users" },
   { icon: UsersRound, label: "Groupes", color: "text-primary", path: "/dashboard" },
   { icon: Flag, label: "Pages", color: "text-orange-500", path: "/dashboard" },
   { icon: ShoppingBag, label: "Marketplace", color: "text-primary", path: "/dashboard" },
