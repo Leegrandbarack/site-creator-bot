@@ -110,6 +110,7 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
 
   return (
     <div className="space-y-4">
+      <StoriesBar userAvatar={user.avatar} />
       <CreatePost user={user} userId={userId} onPostCreated={fetchPosts} />
 
       {isLoading ? (
