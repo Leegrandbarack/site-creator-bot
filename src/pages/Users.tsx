@@ -78,19 +78,12 @@ const Users = () => {
       return;
     }
 
-    // Create new conversation
-    const { data: conv } = await supabase
-      .from("conversations")
-      .insert({})
-      .select()
-      .single();
+    // Create new conversation using RPC
+    const { data: convId } = await supabase
+      .rpc("create_conversation_with_participant", { other_user_id: targetUserId });
 
-    if (conv) {
-      await supabase.from("conversation_participants").insert([
-        { conversation_id: conv.id, user_id: currentUserId },
-        { conversation_id: conv.id, user_id: targetUserId },
-      ]);
-      navigate(`/messages?conversation=${conv.id}`);
+    if (convId) {
+      navigate(`/messages?conversation=${convId}`);
     }
     setNavigatingTo(null);
   };

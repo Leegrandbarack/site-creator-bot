@@ -457,6 +457,10 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_verification_codes: { Args: never; Returns: undefined }
+      create_conversation_with_participant: {
+        Args: { other_user_id: string }
+        Returns: string
+      }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
