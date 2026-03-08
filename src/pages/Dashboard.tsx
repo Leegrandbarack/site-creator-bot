@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
@@ -8,23 +9,48 @@ import RightSidebar from "@/components/dashboard/RightSidebar";
 
 const Dashboard = () => {
   const [isReady, setIsReady] = useState(false);
-  const [user] = useState({
-    name: "Utilisateur Demo",
+  const [user, setUser] = useState({
+    name: "Utilisateur",
     firstName: "Utilisateur",
-    avatar: "https://i.pravatar.cc/150?img=3",
+    avatar: "",
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const check = async () => {
+    const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        // Pas de session, connexion anonyme rapide
-        await supabase.auth.signInAnonymously();
+        navigate("/login");
+        return;
       }
+
+      // Load profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, avatar_url")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (profile) {
+        const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
+        setUser({
+          name: fullName,
+          firstName: profile.first_name || "Utilisateur",
+          avatar: profile.avatar_url || "",
+        });
+      }
+
+      // Update presence
+      await supabase.from("user_presence").upsert({
+        user_id: session.user.id,
+        is_online: true,
+        last_seen: new Date().toISOString(),
+      });
+
       setIsReady(true);
     };
-    check();
-  }, []);
+    init();
+  }, [navigate]);
 
   if (!isReady) {
     return (
