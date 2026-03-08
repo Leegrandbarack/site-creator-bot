@@ -21,43 +21,30 @@ const Messages = () => {
   const { conversations, loading, fetchConversations, getOrCreateConversation } = useMessages(userId);
   usePresence(userId);
 
-  // Handle URL param for direct conversation opening
   useEffect(() => {
     const convParam = searchParams.get("conversation");
-    if (convParam) {
-      setActiveConvId(convParam);
-    }
+    if (convParam) setActiveConvId(convParam);
   }, [searchParams]);
 
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-        return;
-      }
+      if (!session) { navigate("/login"); return; }
       setUserId(session.user.id);
-
       const { data: profile } = await supabase
         .from("profiles")
         .select("first_name, last_name, avatar_url")
         .eq("user_id", session.user.id)
         .maybeSingle();
-
       if (profile) {
         const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
-        setUserInfo({
-          name,
-          firstName: profile.first_name || "U",
-          avatar: profile.avatar_url || "",
-        });
+        setUserInfo({ name, firstName: profile.first_name || "U", avatar: profile.avatar_url || "" });
       }
       setIsReady(true);
     };
     init();
   }, [navigate]);
 
-  // Fetch online users
   useEffect(() => {
     const fetchPresence = async () => {
       const { data } = await supabase.from("user_presence").select("user_id").eq("is_online", true);
@@ -65,59 +52,51 @@ const Messages = () => {
     };
     fetchPresence();
     const interval = setInterval(fetchPresence, 15000);
-
     const channel = supabase
       .channel("presence-changes-msg")
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_presence" }, () => {
-        fetchPresence();
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_presence" }, () => fetchPresence())
       .subscribe();
-
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
+    return () => { clearInterval(interval); supabase.removeChannel(channel); };
   }, []);
 
-  // Realtime conversation updates
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
       .channel("conversations-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => {
-        fetchConversations();
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => {
-        fetchConversations();
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => fetchConversations())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => fetchConversations())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [userId, fetchConversations]);
 
   const handleNewConversation = async (otherUserId: string) => {
     const convId = await getOrCreateConversation(otherUserId);
-    if (convId) {
-      setActiveConvId(convId);
-      setShowNewConv(false);
-    }
+    if (convId) { setActiveConvId(convId); setShowNewConv(false); }
   };
 
   const activeConversation = conversations.find((c) => c.id === activeConvId) || null;
 
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Chargement de Messenger...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-background">
       <DashboardNavbar user={userInfo} />
-      <div className="pt-14 flex h-[calc(100vh-3.5rem)] max-w-[1400px] mx-auto">
-        {/* Conversation list */}
-        <div className={`w-full lg:w-[360px] shrink-0 border-r border-border bg-card ${activeConvId ? "hidden lg:flex lg:flex-col" : "flex flex-col"}`}>
+      <div className="pt-14 flex h-[calc(100vh-3.5rem)]">
+        {/* Sidebar - Conversation List */}
+        <div
+          className={`w-full lg:w-[360px] xl:w-[380px] shrink-0 border-r border-border/50 bg-card shadow-[1px_0_3px_hsl(var(--foreground)/0.03)] ${
+            activeConvId ? "hidden lg:flex lg:flex-col" : "flex flex-col"
+          }`}
+        >
           <ConversationList
             conversations={conversations}
             activeId={activeConvId}
@@ -131,7 +110,7 @@ const Messages = () => {
         {/* Chat area */}
         <div className={`flex-1 min-w-0 ${!activeConvId ? "hidden lg:flex" : "flex"}`}>
           {activeConversation && userId ? (
-            <div className="w-full">
+            <div className="w-full h-full">
               <ChatView
                 conversation={activeConversation}
                 userId={userId}
@@ -140,17 +119,19 @@ const Messages = () => {
               />
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                <MessageSquare className="w-12 h-12 text-primary" />
+            <div className="flex-1 flex flex-col items-center justify-center gap-5 text-muted-foreground bg-gradient-to-br from-background to-muted/30">
+              <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shadow-[0_8px_30px_hsl(var(--primary)/0.1)]">
+                <MessageSquare className="w-14 h-14 text-primary" />
               </div>
               <div className="text-center">
-                <p className="text-xl font-semibold text-foreground">Vos messages</p>
-                <p className="text-sm mt-1">Sélectionnez une conversation ou démarrez-en une nouvelle</p>
+                <p className="text-2xl font-bold text-foreground">Vos messages</p>
+                <p className="text-sm mt-2 text-muted-foreground max-w-xs">
+                  Sélectionnez une conversation ou commencez-en une nouvelle pour discuter
+                </p>
               </div>
               <button
                 onClick={() => setShowNewConv(true)}
-                className="mt-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+                className="mt-2 px-7 py-3 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:bg-primary/90 transition-all duration-300 flex items-center gap-2 shadow-[0_4px_14px_hsl(var(--primary)/0.35)] hover:shadow-[0_6px_20px_hsl(var(--primary)/0.45)] hover:scale-[1.02] active:scale-95"
               >
                 <UserPlus className="w-4 h-4" /> Nouvelle conversation
               </button>
@@ -159,7 +140,6 @@ const Messages = () => {
         </div>
       </div>
 
-      {/* New conversation dialog */}
       {showNewConv && userId && (
         <NewConversationDialog
           userId={userId}
