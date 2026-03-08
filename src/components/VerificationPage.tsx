@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ interface VerificationPageProps {
 }
 
 const VerificationPage = ({ phoneNumber, devCode: initialDevCode, onBack }: VerificationPageProps) => {
+  const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [devCode, setDevCode] = useState<string | null>(initialDevCode || null);
   const [isLoading, setIsLoading] = useState(false);
@@ -95,10 +97,10 @@ const VerificationPage = ({ phoneNumber, devCode: initialDevCode, onBack }: Veri
               Votre numéro {phoneNumber} a été vérifié avec succès.
             </p>
             <Button
-              onClick={onBack}
+              onClick={() => navigate("/dashboard")}
               className="bg-primary hover:bg-primary/90"
             >
-              Retour à l'accueil
+              Accéder au tableau de bord
             </Button>
           </div>
         </main>
