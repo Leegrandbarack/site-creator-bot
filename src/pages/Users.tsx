@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Search, Loader2 } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
@@ -22,6 +21,7 @@ const Users = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,13 +33,11 @@ const Users = () => {
       }
       setCurrentUserId(session.user.id);
 
-      // Fetch all profiles except current user
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, user_id, first_name, last_name, avatar_url, bio")
         .neq("user_id", session.user.id);
 
-      // Fetch online status
       const { data: presence } = await supabase
         .from("user_presence")
         .select("user_id, is_online");
@@ -59,6 +57,7 @@ const Users = () => {
 
   const handleMessage = async (targetUserId: string) => {
     if (!currentUserId) return;
+    setNavigatingTo(targetUserId);
 
     // Check if conversation already exists
     const { data: myConversations } = await supabase
@@ -93,6 +92,7 @@ const Users = () => {
       ]);
       navigate(`/messages?conversation=${conv.id}`);
     }
+    setNavigatingTo(null);
   };
 
   const filtered = users.filter(u => {
@@ -130,45 +130,48 @@ const Users = () => {
           <p className="text-center text-muted-foreground py-10">Aucun utilisateur trouvé</p>
         ) : (
           <div className="grid gap-3">
-            {filtered.map((u) => (
-              <div
-                key={u.id}
-                className="bg-card rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow border border-border"
-              >
-                <div className="relative">
-                  <Avatar className="w-14 h-14">
-                    <AvatarImage src={u.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
-                      {(u.first_name?.[0] || "?").toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {u.is_online && (
-                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-secondary rounded-full border-2 border-card" />
-                  )}
-                </div>
+            {filtered.map((u) => {
+              const name = `${u.first_name || ""} ${u.last_name || ""}`.trim() || "Utilisateur";
+              const isNavigating = navigatingTo === u.user_id;
 
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground truncate">
-                    {u.first_name || ""} {u.last_name || ""}
-                  </p>
-                  {u.bio && (
-                    <p className="text-sm text-muted-foreground truncate">{u.bio}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {u.is_online ? "🟢 En ligne" : "⚫ Hors ligne"}
-                  </p>
-                </div>
-
-                <Button
+              return (
+                <div
+                  key={u.id}
                   onClick={() => handleMessage(u.user_id)}
-                  className="shrink-0"
-                  size="sm"
+                  className="bg-card rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all border border-border cursor-pointer hover:bg-accent/50 active:scale-[0.99]"
                 >
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  Message
-                </Button>
-              </div>
-            ))}
+                  <div className="relative">
+                    <Avatar className="w-14 h-14">
+                      <AvatarImage src={u.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
+                        {(u.first_name?.[0] || "?").toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {u.is_online && (
+                      <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-card" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground truncate">{name}</p>
+                    {u.bio && (
+                      <p className="text-sm text-muted-foreground truncate">{u.bio}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {u.is_online ? "🟢 En ligne" : "⚫ Hors ligne"}
+                    </p>
+                  </div>
+
+                  <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors">
+                    {isNavigating ? (
+                      <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                    ) : (
+                      <MessageCircle className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

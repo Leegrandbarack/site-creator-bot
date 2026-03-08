@@ -6,7 +6,7 @@ import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import ConversationList from "@/components/messenger/ConversationList";
 import ChatView from "@/components/messenger/ChatView";
 import NewConversationDialog from "@/components/messenger/NewConversationDialog";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Messages = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -16,19 +16,27 @@ const Messages = () => {
   const [showNewConv, setShowNewConv] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "Utilisateur", firstName: "U", avatar: "https://i.pravatar.cc/150?img=3" });
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const { conversations, loading, fetchConversations, getOrCreateConversation } = useMessages(userId);
   usePresence(userId);
 
+  // Handle URL param for direct conversation opening
+  useEffect(() => {
+    const convParam = searchParams.get("conversation");
+    if (convParam) {
+      setActiveConvId(convParam);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUserId(session.user.id);
-      } else {
-        const { data } = await supabase.auth.signInAnonymously();
-        if (data.session) setUserId(data.session.user.id);
+      if (!session) {
+        navigate("/login");
+        return;
       }
+      setUserId(session.user.id);
 
       const { data: profile } = await supabase
         .from("profiles")
