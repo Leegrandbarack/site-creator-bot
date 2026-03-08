@@ -1,5 +1,6 @@
 import { Users, Image, UsersRound, Bookmark, Calendar, ShoppingBag } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 
 interface LeftSidebarProps {
   user: { name: string; firstName: string; avatar: string };
