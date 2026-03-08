@@ -15,27 +15,15 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    const ensureSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setIsReady(true);
-          return;
-        }
-        // Try anonymous sign-in
-        const { error } = await supabase.auth.signInAnonymously();
-        if (error) {
-          console.error("Anonymous sign-in error:", error);
-          // Retry once after a short delay
-          await new Promise(r => setTimeout(r, 1000));
-          await supabase.auth.signInAnonymously();
-        }
-      } catch (err) {
-        console.error("Session error:", err);
+    const check = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Pas de session, connexion anonyme rapide
+        await supabase.auth.signInAnonymously();
       }
       setIsReady(true);
     };
-    ensureSession();
+    check();
   }, []);
 
   if (!isReady) {
