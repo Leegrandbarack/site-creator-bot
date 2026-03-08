@@ -2,7 +2,7 @@ import { Conversation } from "@/hooks/useMessages";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Search, Edit } from "lucide-react";
+import { Search, Edit, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
@@ -11,9 +11,11 @@ interface ConversationListProps {
   activeId: string | null;
   onSelect: (id: string) => void;
   onlineUsers: Set<string>;
+  onNewConversation: () => void;
+  loading: boolean;
 }
 
-const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }: ConversationListProps) => {
+const ConversationList = ({ conversations, activeId, onSelect, onlineUsers, onNewConversation, loading }: ConversationListProps) => {
   const [search, setSearch] = useState("");
 
   const filtered = conversations.filter((c) => {
@@ -23,11 +25,16 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }: Co
   });
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex flex-col h-full">
+      {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl font-bold text-foreground">Discussions</h2>
-          <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
+          <button
+            onClick={onNewConversation}
+            className="w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+            title="Nouvelle conversation"
+          >
             <Edit className="w-4 h-4 text-foreground" />
           </button>
         </div>
@@ -35,17 +42,32 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }: Co
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher dans Messenger"
-            className="pl-9 h-9 rounded-full bg-muted border-0 text-sm"
+            className="pl-9 h-9 rounded-full bg-muted border-0 text-sm focus-visible:ring-1 focus-visible:ring-primary/30"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
+      {/* Conversation list */}
       <div className="flex-1 overflow-y-auto">
-        {filtered.length === 0 ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">
-            Aucune conversation
+        {loading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              {search ? "Aucun résultat" : "Aucune conversation"}
+            </p>
+            {!search && (
+              <button
+                onClick={onNewConversation}
+                className="mt-3 text-sm text-primary font-medium hover:underline"
+              >
+                Démarrer une conversation
+              </button>
+            )}
           </div>
         ) : (
           filtered.map((conv, i) => {
@@ -59,15 +81,15 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }: Co
               <button
                 key={conv.id}
                 onClick={() => onSelect(conv.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 hover:bg-muted/70 animate-fade-in ${
-                  isActive ? "bg-primary/10" : ""
+                className={`w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-200 animate-fade-in ${
+                  isActive ? "bg-primary/10 hover:bg-primary/15" : "hover:bg-muted/70"
                 }`}
                 style={{ animationDelay: `${i * 30}ms` }}
               >
                 <div className="relative shrink-0">
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={`https://i.pravatar.cc/150?u=${conv.participant?.user_id}`} />
-                    <AvatarFallback>{name[0]}</AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">{name[0]}</AvatarFallback>
                   </Avatar>
                   {isOnline && (
                     <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-card rounded-full" />
@@ -79,7 +101,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }: Co
                       {name}
                     </span>
                     {conv.last_message_at && (
-                      <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                      <span className={`text-xs shrink-0 ml-2 ${conv.unread_count > 0 ? "text-primary font-semibold" : "text-muted-foreground"}`}>
                         {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: false, locale: fr })}
                       </span>
                     )}

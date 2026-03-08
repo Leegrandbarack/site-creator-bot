@@ -1,23 +1,25 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, UserPlus } from "lucide-react";
 import { useMessages, usePresence } from "@/hooks/useMessages";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import ConversationList from "@/components/messenger/ConversationList";
 import ChatView from "@/components/messenger/ChatView";
+import NewConversationDialog from "@/components/messenger/NewConversationDialog";
 
 const Messages = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [showNewConv, setShowNewConv] = useState(false);
   const [user] = useState({
     name: "Utilisateur Demo",
     firstName: "Utilisateur",
     avatar: "https://i.pravatar.cc/150?img=3",
   });
 
-  const { conversations, loading } = useMessages(userId);
+  const { conversations, loading, fetchConversations, getOrCreateConversation } = useMessages(userId);
   usePresence(userId);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ const Messages = () => {
     const interval = setInterval(fetchPresence, 15000);
 
     const channel = supabase
-      .channel("presence-changes")
+      .channel("presence-changes-msg")
       .on("postgres_changes", { event: "*", schema: "public", table: "user_presence" }, () => {
         fetchPresence();
       })
@@ -55,6 +57,29 @@ const Messages = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Realtime conversation updates
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel("conversations-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => {
+        fetchConversations();
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => {
+        fetchConversations();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, fetchConversations]);
+
+  const handleNewConversation = async (otherUserId: string) => {
+    const convId = await getOrCreateConversation(otherUserId);
+    if (convId) {
+      setActiveConvId(convId);
+      setShowNewConv(false);
+    }
+  };
 
   const activeConversation = conversations.find((c) => c.id === activeConvId) || null;
 
@@ -71,12 +96,14 @@ const Messages = () => {
       <DashboardNavbar user={user} />
       <div className="pt-14 flex h-[calc(100vh-3.5rem)] max-w-[1400px] mx-auto">
         {/* Conversation list */}
-        <div className={`w-full lg:w-[360px] shrink-0 border-r border-border ${activeConvId ? "hidden lg:block" : "block"}`}>
+        <div className={`w-full lg:w-[360px] shrink-0 border-r border-border bg-card ${activeConvId ? "hidden lg:flex lg:flex-col" : "flex flex-col"}`}>
           <ConversationList
             conversations={conversations}
             activeId={activeConvId}
             onSelect={setActiveConvId}
             onlineUsers={onlineUsers}
+            onNewConversation={() => setShowNewConv(true)}
+            loading={loading}
           />
         </div>
 
@@ -92,16 +119,33 @@ const Messages = () => {
               />
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground">
-              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                <MessageSquare className="w-10 h-10" />
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                <MessageSquare className="w-12 h-12 text-primary" />
               </div>
-              <p className="text-lg font-medium text-foreground">Vos messages</p>
-              <p className="text-sm">Sélectionnez une conversation pour commencer</p>
+              <div className="text-center">
+                <p className="text-xl font-semibold text-foreground">Vos messages</p>
+                <p className="text-sm mt-1">Sélectionnez une conversation ou démarrez-en une nouvelle</p>
+              </div>
+              <button
+                onClick={() => setShowNewConv(true)}
+                className="mt-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" /> Nouvelle conversation
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* New conversation dialog */}
+      {showNewConv && userId && (
+        <NewConversationDialog
+          userId={userId}
+          onSelect={handleNewConversation}
+          onClose={() => setShowNewConv(false)}
+        />
+      )}
     </div>
   );
 };
