@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Système d'Amis - Facebook Clone</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --blue: #1877f2;
+    --blue-hover: #166fe5;
+    --green: #42b72a;
+    --green-hover: #36a420;
+    --red: #e4405f;
+    --red-hover: #d32e4d;
+    --gray-bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --text: #1c1e21;
+    --text-secondary: #65676b;
+    --border: #dadde1;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --radius: 10px;
+  }
+
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--gray-bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* === HEADER === */
+  .header {
+    background: var(--card-bg);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header h1 { font-size: 24px; color: var(--blue); font-weight: 800; }
+  .header .user-info { display: flex; align-items: center; gap: 10px; }
+  .header .user-info img { width: 36px; height: 36px; border-radius: 50%; }
+  .header .badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 12px;
+    margin-left: -8px;
+    margin-top: -16px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* === TABS === */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 24px 0;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .tab {
+    padding: 10px 24px;
+    border: none;
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius) var(--radius) 0 0;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .tab:hover { background: #e4e6eb; }
+  .tab.active {
+    color: var(--blue);
+    background: var(--card-bg);
+  }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--blue);
+    border-radius: 3px 3px 0 0;
+  }
+  .tab .tab-badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+
+  /* === CONTAINER === */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+  }
+  .section {
+    background: var(--card-bg);
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    display: none;
+  }
+  .section.active { display: block; }
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* === CARDS GRID === */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  /* === USER CARD === */
+  .user-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: cardIn 0.4s ease-out both;
+  }
+  .user-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+  }
+  .user-card.removing {
+    animation: cardOut 0.4s ease-in forwards;
+  }
+  .user-card .cover {
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+  }
+  .user-card .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid var(--card-bg);
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    object-fit: cover;
+  }
+  .user-card .info {
+    padding: 48px 16px 16px;
+    text-align: center;
+  }
+  .user-card .name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .user-card .mutual {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+  .user-card .online-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 4px;
+    animation: pulse 2s infinite;
+  }
+  .user-card .offline-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #bbb;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+
+  /* === BUTTONS === */
+  .btn {
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-add {
+    background: var(--blue);
+    color: #fff;
+  }
+  .btn-add:hover { background: var(--blue-hover); box-shadow: 0 4px 12px rgba(24,119,242,0.4); }
+  .btn-sent {
+    background: #e4e6eb;
+    color: var(--text-secondary);
+    cursor: default;
+  }
+  .btn-confirm {
+    background: var(--blue);
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .btn-confirm:hover { background: var(--blue-hover); }
+  .btn-reject {
+    background: #e4e6eb;
+    color: var(--text);
+  }
+  .btn-reject:hover { background: #d8dadf; }
+  .btn-remove {
+    background: #fce4ec;
+    color: var(--red);
+  }
+  .btn-remove:hover { background: #f8bbd0; }
+  .btn-message {
+    background: #e7f3ff;
+    color: var(--blue);
+    margin-top: 6px;
+  }
+  .btn-message:hover { background: #d0e8ff; }
+  .btn-reject-all {
+    padding: 8px 20px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-reject-all:hover { background: var(--red-hover); }
+
+  /* === RIPPLE === */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+  }
+
+  /* === TOAST === */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .toast {
+    padding: 12px 20px;
+    background: #323232;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    animation: toastIn 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.success { background: var(--green); }
+  .toast.info { background: var(--blue); }
+  .toast.error { background: var(--red); }
+  .toast.removing { animation: toastOut 0.3s ease-in forwards; }
+
+  /* === EMPTY STATE === */
+  .empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-secondary);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 16px; font-weight: 600; }
+  .empty-sub { font-size: 13px; margin-top: 4px; }
+
+  /* === FRIEND ROW (for requests) === */
+  .request-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: var(--radius);
+    transition: all 0.3s;
+    animation: cardSlide 0.3s ease-out both;
+    border: 1px solid transparent;
+  }
+  .request-card:hover {
+    background: #f7f8fa;
+    border-color: var(--border);
+  }
+  .request-card.removing { animation: cardSlideOut 0.3s ease-in forwards; }
+  .request-card .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .request-card .req-info { flex: 1; }
+  .request-card .req-name { font-weight: 700; font-size: 15px; }
+  .request-card .req-mutual { font-size: 12px; color: var(--text-secondary); }
+  .request-card .req-time { font-size: 11px; color: var(--text-secondary); }
+  .request-card .req-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .request-card .req-actions .btn { width: auto; padding: 7px 24px; }
+
+  /* === ANIMATIONS === */
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes cardOut {
+    to { opacity: 0; transform: scale(0.9) translateY(-10px); }
+  }
+  @keyframes cardSlide {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes cardSlideOut {
+    to { opacity: 0; transform: translateX(40px); height: 0; padding: 0; margin: 0; overflow: hidden; }
+  }
+  @keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes toastOut {
+    to { opacity: 0; transform: translateX(40px); }
+  }
+  @keyframes btnPulse {
+    0% { box-shadow: 0 0 0 0 rgba(24,119,242,0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(24,119,242,0); }
+    100% { box-shadow: 0 0 0 0 rgba(24,119,242,0); }
+  }
+
+  /* === DARK MODE === */
+  body.dark {
+    --gray-bg: #18191a;
+    --card-bg: #242526;
+    --text: #e4e6eb;
+    --text-secondary: #b0b3b8;
+    --border: #3e4042;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  body.dark .btn-sent { background: #3a3b3c; color: #b0b3b8; }
+  body.dark .btn-reject { background: #3a3b3c; color: #e4e6eb; }
+  body.dark .btn-reject:hover { background: #4e4f50; }
+  body.dark .btn-remove { background: #3a2029; color: #f87171; }
+  body.dark .btn-message { background: #263951; }
+  body.dark .request-card:hover { background: #303132; }
+
+  .dark-toggle {
+    background: none;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .dark-toggle:hover { background: var(--border); }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 600px) {
+    .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .tabs { padding: 12px 12px 0; gap: 2px; }
+    .tab { padding: 8px 14px; font-size: 13px; }
+    .container { padding: 0 12px 24px; }
+    .header { padding: 10px 16px; }
+    .request-card .req-actions { flex-direction: column; }
+    .request-card .req-actions .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>👥 Amis</h1>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button class="dark-toggle" onclick="toggleDark()">🌙 Mode sombre</button>
+    <div class="user-info">
+      <img src="https://i.pravatar.cc/100?img=68" alt="Moi">
+      <span style="font-weight:600;">Moi</span>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('requests', this)">
+    Demandes <span class="tab-badge" id="requestsBadge">3</span>
+  </button>
+  <button class="tab" onclick="switchTab('suggestions', this)">Suggestions</button>
+  <button class="tab" onclick="switchTab('friends', this)">Mes amis</button>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+
+  <!-- REQUESTS -->
+  <div class="section active" id="requests">
+    <div class="section-title">
+      <span>Demandes d'amis</span>
+      <button class="btn-reject-all" onclick="rejectAll()">Tout refuser</button>
+    </div>
+    <div id="requestsList"></div>
+  </div>
+
+  <!-- SUGGESTIONS -->
+  <div class="section" id="suggestions">
+    <div class="section-title">Personnes que vous connaissez peut-être</div>
+    <div class="cards-grid" id="suggestionsList"></div>
+  </div>
+
+  <!-- FRIENDS -->
+  <div class="section" id="friends">
+    <div class="section-title">Mes amis</div>
+    <div class="cards-grid" id="friendsList"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+// ============================================
+// BASE DE DONNÉES SIMULÉE (localStorage)
+// ============================================
+const DB = {
+  _key: "fb_friends_db",
+
+  _default: {
+    currentUser: { id: "me", name: "Moi", avatar: "https://i.pravatar.cc/100?img=68" },
+    users: [
+      { id: "u1", name: "Sophie Martin", avatar: "https://i.pravatar.cc/200?img=1", mutual: 12, online: true },
+      { id: "u2", name: "Lucas Bernard", avatar: "https://i.pravatar.cc/200?img=3", mutual: 5, online: false },
+      { id: "u3", name: "Emma Dubois", avatar: "https://i.pravatar.cc/200?img=5", mutual: 8, online: true },
+      { id: "u4", name: "Thomas Petit", avatar: "https://i.pravatar.cc/200?img=7", mutual: 3, online: true },
+      { id: "u5", name: "Léa Moreau", avatar: "https://i.pravatar.cc/200?img=9", mutual: 15, online: false },
+      { id: "u6", name: "Hugo Laurent", avatar: "https://i.pravatar.cc/200?img=11", mutual: 2, online: false },
+      { id: "u7", name: "Chloé Simon", avatar: "https://i.pravatar.cc/200?img=16", mutual: 7, online: true },
+      { id: "u8", name: "Nathan Michel", avatar: "https://i.pravatar.cc/200?img=12", mutual: 1, online: false },
+    ],
+    // status: "none" | "pending_sent" | "pending_received" | "accepted"
+    friendships: [
+      { userId: "u1", status: "pending_received", date: "Il y a 2h" },
+      { userId: "u3", status: "pending_received", date: "Il y a 5h" },
+      { userId: "u5", status: "pending_received", date: "Hier" },
+    ]
+  },
+
+  load() {
+    const raw = localStorage.getItem(this._key);
+    if (raw) return JSON.parse(raw);
+    const copy = JSON.parse(JSON.stringify(this._default));
+    this.save(copy);
+    return copy;
+  },
+
+  save(data) {
+    localStorage.setItem(this._key, JSON.stringify(data));
+  },
+
+  reset() {
+    localStorage.removeItem(this._key);
+    location.reload();
+  },
+
+  getUser(id) {
+    const db = this.load();
+    return db.users.find(u => u.id === id);
+  },
+
+  getFriendship(userId) {
+    const db = this.load();
+    return db.friendships.find(f => f.userId === userId);
+  },
+
+  setFriendship(userId, status) {
+    const db = this.load();
+    const existing = db.friendships.find(f => f.userId === userId);
+    if (existing) {
+      existing.status = status;
+      existing.date = "À l'instant";
+    } else {
+      db.friendships.push({ userId, status, date: "À l'instant" });
+    }
+    this.save(db);
+  },
+
+  removeFriendship(userId) {
+    const db = this.load();
+    db.friendships = db.friendships.filter(f => f.userId !== userId);
+    this.save(db);
+  },
+
+  getRequests() {
+    const db = this.load();
+    return db.friendships
+      .filter(f => f.status === "pending_received")
+      .map(f => ({ ...f, user: db.users.find(u => u.id === f.userId) }));
+  },
+
+  getSuggestions() {
+    const db = this.load();
+    const friendIds = db.friendships
+      .filter(f => f.status === "accepted" || f.status === "pending_received")
+      .map(f => f.userId);
+    return db.users.filter(u => !friendIds.includes(u.id));
+  },
+
+  getFriends() {
+    const db = this.load();
+    return db.friendships
+      .filter(f => f.status === "accepted")
+      .map(f => ({ ...f, user: db.users.find(u => u.id === f.userId) }));
+  }
+};
+
+// ============================================
+// UI LOGIC
+// ============================================
+function switchTab(tabId, btn) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(tabId).classList.add("active");
+}
+
+function showToast(msg, type = "info") {
+  const container = document.getElementById("toasts");
+  const icons = { success: "✅", info: "ℹ️", error: "❌" };
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `${icons[type] || ""} ${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("removing");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function addRipple(e, el) {
+  const rect = el.getBoundingClientRect();
+  const ripple = document.createElement("span");
+  ripple.className = "ripple";
+  ripple.style.left = (e.clientX - rect.left) + "px";
+  ripple.style.top = (e.clientY - rect.top) + "px";
+  el.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+}
+
+function updateBadge() {
+  const count = DB.getRequests().length;
+  const badge = document.getElementById("requestsBadge");
+  badge.textContent = count;
+  badge.style.display = count > 0 ? "inline" : "none";
+}
+
+// ============================================
+// RENDER FUNCTIONS
+// ============================================
+function renderRequests() {
+  const list = document.getElementById("requestsList");
+  const requests = DB.getRequests();
+  
+  if (requests.length === 0) {
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">Aucune demande d'ami</div>
+        <div class="empty-sub">Les nouvelles demandes apparaîtront ici</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = requests.map((r, i) => `
+    <div class="request-card" id="req-${r.userId}" style="animation-delay:${i * 80}ms">
+      <img class="avatar" src="${r.user.avatar}" alt="${r.user.name}">
+      <div class="req-info">
+        <div class="req-name">${r.user.name}</div>
+        <div class="req-mutual">${r.user.mutual} ami(s) en commun</div>
+        <div class="req-time">${r.date}</div>
+        <div class="req-actions">
+          <button class="btn btn-confirm" onclick="acceptRequest('${r.userId}', event)">Confirmer</button>
+          <button class="btn btn-reject" onclick="rejectRequest('${r.userId}', event)">Supprimer</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderSuggestions() {
+  const list = document.getElementById("suggestionsList");
+  const suggestions = DB.getSuggestions();
+
+  if (suggestions.length === 0) {
+    list.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-text">Aucune suggestion</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = suggestions.map((u, i) => {
+    const fs = DB.getFriendship(u.id);
+    const status = fs ? fs.status : "none";
+    let btnHtml = "";
+    
+    if (status === "pending_sent") {
+      btnHtml = `<button class="btn btn-sent">✓ Demande envoyée</button>`;
+    } else {
+      btnHtml = `<button class="btn btn-add" onclick="sendRequest('${u.id}', event)">+ Ajouter</button>`;
+    }
+
+    return `
+      <div class="user-card" id="card-${u.id}" style="animation-delay:${i * 60}ms">
+        <div class="cover"></div>
+        <img class="avatar" src="${u.avatar}" alt="${u.name}">
+        <div class="info">
+          <div class="name">
+            <span class="${u.online ? 'online-dot' : 'offline-dot'}"></span>
+            ${u.name}
+          </div>
+          <div class="mutual">${u.mutual} ami(s) en commun</div>
+          ${btnHtml}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderFriends() {
+  const list = document.getElementById("friendsList");
+  const friends = DB.getFriends();
+
+  if (friends.length === 0) {
+    list.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">👥</div>
+        <div class="empty-text">Aucun ami pour le moment</div>
+        <div class="empty-sub">Ajoutez des amis depuis les suggestions</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = friends.map((f, i) => `
+    <div class="user-card" id="friend-${f.userId}" style="animation-delay:${i * 60}ms">
+      <div class="cover" style="background:linear-gradient(135deg,#43e97b,#38f9d7)"></div>
+      <img class="avatar" src="${f.user.avatar}" alt="${f.user.name}">
+      <div class="info">
+        <div class="name">
+          <span class="${f.user.online ? 'online-dot' : 'offline-dot'}"></span>
+          ${f.user.name}
+        </div>
+        <div class="mutual">${f.user.mutual} ami(s) en commun</div>
+        <button class="btn btn-message" onclick="showToast('💬 Conversation ouverte avec ${f.user.name}', 'info')">💬 Message</button>
+        <button class="btn btn-remove" onclick="removeFriend('${f.userId}', event)" style="margin-top:6px">Retirer</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderAll() {
+  renderRequests();
+  renderSuggestions();
+  renderFriends();
+  updateBadge();
+}
+
+// ============================================
+// ACTIONS
+// ============================================
+function sendRequest(userId, e) {
+  addRipple(e, e.target);
+  DB.setFriendship(userId, "pending_sent");
+  showToast("📤 Demande d'ami envoyée !", "info");
+  renderSuggestions();
+}
+
+function acceptRequest(userId, e) {
+  addRipple(e, e.target);
+  const card = document.getElementById(`req-${userId}`);
+  DB.setFriendship(userId, "accepted");
+  showToast("🎉 Vous êtes maintenant amis !", "success");
+  
+  if (card) {
+    card.classList.add("removing");
+    setTimeout(() => { renderAll(); }, 400);
+  } else {
+    renderAll();
+  }
+}
+
+function rejectRequest(userId, e) {
+  addRipple(e, e.target);
+  const card = document.getElementById(`req-${userId}`);
+  DB.removeFriendship(userId);
+  showToast("Demande supprimée", "error");
+  
+  if (card) {
+    card.classList.add("removing");
+    setTimeout(() => { renderAll(); }, 400);
+  } else {
+    renderAll();
+  }
+}
+
+function removeFriend(userId, e) {
+  addRipple(e, e.target);
+  const card = document.getElementById(`friend-${userId}`);
+  DB.removeFriendship(userId);
+  showToast("Ami retiré", "error");
+  
+  if (card) {
+    card.classList.add("removing");
+    setTimeout(() => { renderAll(); }, 400);
+  } else {
+    renderAll();
+  }
+}
+
+function rejectAll() {
+  const requests = DB.getRequests();
+  if (requests.length === 0) return;
+  requests.forEach(r => DB.removeFriendship(r.userId));
+  showToast(`${requests.length} demande(s) supprimée(s)`, "error");
+  renderAll();
+}
+
+function toggleDark() {
+  document.body.classList.toggle("dark");
+  const btn = document.querySelector(".dark-toggle");
+  btn.textContent = document.body.classList.contains("dark") ? "☀️ Mode clair" : "🌙 Mode sombre";
+}
+
+// INIT
+renderAll();
+</script>
+</body>
+</html>
