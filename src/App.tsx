@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
+import Friends from "./pages/Friends";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
