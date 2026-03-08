@@ -27,6 +27,8 @@ const RightSidebar = () => {
         .from("profiles")
         .select("user_id, first_name, last_name, avatar_url")
         .neq("user_id", session.user.id)
+        .not("first_name", "is", null)
+        .neq("first_name", "")
         .limit(20);
 
       // Fetch online status
