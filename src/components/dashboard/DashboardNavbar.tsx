@@ -88,7 +88,10 @@ const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
                     <span className="text-sm font-medium text-foreground">Paramètres</span>
                   </button>
                   <button
-                    onClick={() => navigate("/")}
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      navigate("/");
+                    }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-left"
                   >
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><LogOut className="w-4 h-4" /></div>
