@@ -137,7 +137,7 @@ export function useMessages(userId: string | null) {
     if (convError || !convId) return null;
 
     await fetchConversations();
-    return newConv.id;
+    return convId;
   };
 
   return { conversations, loading, fetchConversations, getOrCreateConversation };
