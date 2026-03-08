@@ -228,7 +228,7 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowEmoji(false)} />
                 <div className="absolute bottom-12 left-0 z-50 animate-scale-in">
-                  <EmojiPicker onSelect={handleEmojiSelect} />
+                  <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmoji(false)} />
                 </div>
               </>
             )}
