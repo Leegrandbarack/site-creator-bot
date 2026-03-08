@@ -96,10 +96,14 @@ const VerificationPage = ({ phoneNumber, devCode: initialDevCode, onBack }: Veri
               Votre numéro {phoneNumber} a été vérifié avec succès.
             </p>
             <Button
-              onClick={onBack}
+              onClick={() => {
+                const nav = document.createElement('a');
+                nav.href = '/dashboard';
+                window.location.href = '/dashboard';
+              }}
               className="bg-primary hover:bg-primary/90"
             >
-              Retour à l'accueil
+              Accéder au tableau de bord
             </Button>
           </div>
         </main>
