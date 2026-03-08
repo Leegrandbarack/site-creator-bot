@@ -31,22 +31,20 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
     ? `${conversation.participant.first_name || "Utilisateur"} ${conversation.participant.last_name || ""}`.trim()
     : "Utilisateur";
 
-  // Auto-scroll to bottom
+  const participantAvatar = conversation.participant?.avatar_url || `https://i.pravatar.cc/150?u=${conversation.participant?.user_id}`;
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, [conversation.id]);
 
-  // Simulated typing indicator
   const simulateTyping = useCallback(() => {
     if (messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.sender_id === userId) {
-        // Simulate other user typing after you send
         const timer = setTimeout(() => {
           setIsTyping(true);
           setTimeout(() => setIsTyping(false), 2000 + Math.random() * 3000);
@@ -97,11 +95,8 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
 
   const handleDeleteConversation = async () => {
     try {
-      // Delete all messages first
       await supabase.from("messages").delete().eq("conversation_id", conversation.id);
-      // Delete participants
       await supabase.from("conversation_participants").delete().eq("conversation_id", conversation.id);
-      // Delete conversation
       await supabase.from("conversations").delete().eq("id", conversation.id);
       toast.success("Conversation supprimée");
       onBack();
@@ -117,7 +112,6 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
     return format(date, "d MMM HH:mm", { locale: fr });
   };
 
-  // Group messages by date
   const groupedMessages: { date: string; msgs: typeof messages }[] = [];
   messages.forEach((msg) => {
     const dateKey = format(new Date(msg.created_at), "yyyy-MM-dd");
@@ -145,7 +139,7 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
         </button>
         <div className="relative cursor-pointer">
           <Avatar className="w-10 h-10">
-            <AvatarImage src={`https://i.pravatar.cc/150?u=${conversation.participant?.user_id}`} />
+            <AvatarImage src={participantAvatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-semibold">{participantName[0]}</AvatarFallback>
           </Avatar>
           {isOnline && (
@@ -204,7 +198,7 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={`https://i.pravatar.cc/150?u=${conversation.participant?.user_id}`} />
+              <AvatarImage src={participantAvatar} />
               <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">{participantName[0]}</AvatarFallback>
             </Avatar>
             <p className="font-semibold text-lg text-foreground">{participantName}</p>
@@ -232,7 +226,7 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
                       <div className="w-7 shrink-0">
                         {showAvatar && (
                           <Avatar className="w-7 h-7">
-                            <AvatarImage src={`https://i.pravatar.cc/150?u=${conversation.participant?.user_id}`} />
+                            <AvatarImage src={participantAvatar} />
                             <AvatarFallback className="text-xs bg-primary/10 text-primary">{participantName[0]}</AvatarFallback>
                           </Avatar>
                         )}
@@ -260,6 +254,7 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
                       {isLast && (
                         <p className={`text-[10px] text-muted-foreground mt-1 px-1 ${isMine ? "text-right" : "text-left"} opacity-0 group-hover:opacity-100 transition-opacity`}>
                           {formatTime(msg.created_at)}
+                          {isMine && msg.is_read && " · Lu"}
                         </p>
                       )}
                     </div>
@@ -270,11 +265,10 @@ const ChatView = ({ conversation, userId, isOnline, onBack }: ChatViewProps) => 
           ))
         )}
 
-        {/* Typing indicator */}
         {isTyping && (
           <div className="flex items-end gap-2 justify-start mb-2 animate-fade-in">
             <Avatar className="w-7 h-7">
-              <AvatarImage src={`https://i.pravatar.cc/150?u=${conversation.participant?.user_id}`} />
+              <AvatarImage src={participantAvatar} />
               <AvatarFallback className="text-xs">{participantName[0]}</AvatarFallback>
             </Avatar>
             <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">

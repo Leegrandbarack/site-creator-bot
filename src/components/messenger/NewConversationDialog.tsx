@@ -14,6 +14,7 @@ interface UserProfile {
   user_id: string;
   first_name: string | null;
   last_name: string | null;
+  avatar_url: string | null;
 }
 
 const NewConversationDialog = ({ userId, onSelect, onClose }: NewConversationDialogProps) => {
@@ -25,10 +26,9 @@ const NewConversationDialog = ({ userId, onSelect, onClose }: NewConversationDia
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      // Get all profiles except current user
       const { data } = await supabase
         .from("profiles")
-        .select("user_id, first_name, last_name")
+        .select("user_id, first_name, last_name, avatar_url")
         .neq("user_id", userId)
         .limit(50);
       setUsers(data || []);
@@ -97,6 +97,7 @@ const NewConversationDialog = ({ userId, onSelect, onClose }: NewConversationDia
           ) : (
             filtered.map((user, i) => {
               const name = `${user.first_name || "Utilisateur"} ${user.last_name || ""}`.trim();
+              const avatarUrl = user.avatar_url || `https://i.pravatar.cc/150?u=${user.user_id}`;
               const isOnline = onlineUsers.has(user.user_id);
 
               return (
@@ -108,7 +109,7 @@ const NewConversationDialog = ({ userId, onSelect, onClose }: NewConversationDia
                 >
                   <div className="relative shrink-0">
                     <Avatar className="w-11 h-11">
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.user_id}`} />
+                      <AvatarImage src={avatarUrl} />
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold">{name[0]}</AvatarFallback>
                     </Avatar>
                     {isOnline && (

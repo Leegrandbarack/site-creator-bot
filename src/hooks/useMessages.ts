@@ -10,6 +10,7 @@ export interface Conversation {
     user_id: string;
     first_name: string | null;
     last_name: string | null;
+    avatar_url: string | null;
   } | null;
   unread_count: number;
 }
@@ -32,7 +33,6 @@ export function useMessages(userId: string | null) {
     if (!userId) return;
     setLoading(true);
 
-    // Get all conversation IDs for this user
     const { data: participations } = await supabase
       .from("conversation_participants")
       .select("conversation_id")
@@ -46,7 +46,6 @@ export function useMessages(userId: string | null) {
 
     const convIds = participations.map((p) => p.conversation_id);
 
-    // Get conversations
     const { data: convos } = await supabase
       .from("conversations")
       .select("*")
@@ -59,7 +58,6 @@ export function useMessages(userId: string | null) {
       return;
     }
 
-    // Get other participants
     const { data: allParticipants } = await supabase
       .from("conversation_participants")
       .select("conversation_id, user_id")
@@ -68,15 +66,13 @@ export function useMessages(userId: string | null) {
 
     const otherUserIds = [...new Set((allParticipants || []).map((p) => p.user_id))];
 
-    // Get profiles
     const { data: profiles } = otherUserIds.length > 0
-      ? await supabase.from("profiles").select("user_id, first_name, last_name").in("user_id", otherUserIds)
+      ? await supabase.from("profiles").select("user_id, first_name, last_name, avatar_url").in("user_id", otherUserIds)
       : { data: [] };
 
     const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
     const participantMap = new Map((allParticipants || []).map((p) => [p.conversation_id, p.user_id]));
 
-    // Get unread counts
     const { data: unreadMessages } = await supabase
       .from("messages")
       .select("conversation_id")
@@ -98,9 +94,9 @@ export function useMessages(userId: string | null) {
         last_message_at: c.last_message_at,
         updated_at: c.updated_at,
         participant: profile
-          ? { user_id: profile.user_id, first_name: profile.first_name, last_name: profile.last_name }
+          ? { user_id: profile.user_id, first_name: profile.first_name, last_name: profile.last_name, avatar_url: profile.avatar_url }
           : otherUserId
-          ? { user_id: otherUserId, first_name: null, last_name: null }
+          ? { user_id: otherUserId, first_name: null, last_name: null, avatar_url: null }
           : null,
         unread_count: unreadMap.get(c.id) || 0,
       };
@@ -117,7 +113,6 @@ export function useMessages(userId: string | null) {
   const getOrCreateConversation = async (otherUserId: string): Promise<string | null> => {
     if (!userId) return null;
 
-    // Check existing conversation
     const { data: myConvos } = await supabase
       .from("conversation_participants")
       .select("conversation_id")
@@ -136,7 +131,6 @@ export function useMessages(userId: string | null) {
       }
     }
 
-    // Create new conversation
     const { data: newConv, error: convError } = await supabase
       .from("conversations")
       .insert({})
@@ -174,7 +168,6 @@ export function useConversationMessages(conversationId: string | null, userId: s
     setMessages(data || []);
     setLoading(false);
 
-    // Mark as read
     if (userId) {
       await supabase
         .from("messages")
@@ -189,7 +182,6 @@ export function useConversationMessages(conversationId: string | null, userId: s
     fetchMessages();
   }, [fetchMessages]);
 
-  // Realtime
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
@@ -202,7 +194,6 @@ export function useConversationMessages(conversationId: string | null, userId: s
       }, (payload) => {
         const newMsg = payload.new as Message;
         setMessages((prev) => [...prev, newMsg]);
-        // Mark as read if from other user
         if (userId && newMsg.sender_id !== userId) {
           supabase.from("messages").update({ is_read: true }).eq("id", newMsg.id);
         }
