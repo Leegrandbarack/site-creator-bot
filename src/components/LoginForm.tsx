@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import SignupModal from "./SignupModal";
 
 interface LoginFormProps {
@@ -10,11 +13,24 @@ interface LoginFormProps {
 const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
+    if (!email || !password) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      toast.error("Email ou mot de passe incorrect");
+      return;
+    }
+    navigate("/dashboard");
   };
 
   return (
@@ -37,17 +53,15 @@ const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
           />
           <Button
             type="submit"
+            disabled={loading}
             className="w-full h-12 text-xl font-bold bg-primary hover:bg-primary/90"
           >
-            Se connecter
+            {loading ? "Connexion..." : "Se connecter"}
           </Button>
         </form>
 
         <div className="text-center mt-4">
-          <a
-            href="#"
-            className="text-primary hover:underline text-sm"
-          >
+          <a href="#" className="text-primary hover:underline text-sm">
             Mot de passe oublié ?
           </a>
         </div>
