@@ -43,6 +43,33 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       logs: {
         Row: {
           action: string
@@ -64,6 +91,39 @@ export type Database = {
           id?: string
           timestamp?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          from_user_id: string | null
+          id: string
+          is_read: boolean
+          message: string
+          reference_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          reference_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          reference_id?: string | null
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
