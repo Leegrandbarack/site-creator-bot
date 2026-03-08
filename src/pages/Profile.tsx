@@ -19,13 +19,24 @@ const Profile = () => {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        await supabase.auth.signInAnonymously();
-        const { data: { session: newSession } } = await supabase.auth.getSession();
-        setCurrentUserId(newSession?.user?.id || null);
-      } else {
-        setCurrentUserId(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setCurrentUserId(session.user.id);
+          setIsReady(true);
+          return;
+        }
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          console.error("Anonymous sign-in error:", error);
+          await new Promise(r => setTimeout(r, 1000));
+          const { data: retryData } = await supabase.auth.signInAnonymously();
+          setCurrentUserId(retryData?.user?.id || null);
+        } else {
+          setCurrentUserId(data?.user?.id || null);
+        }
+      } catch (err) {
+        console.error("Session error:", err);
       }
       setIsReady(true);
     };
