@@ -70,7 +70,7 @@ const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
                   </div>
                 </div>
                 <div className="p-2">
-                  <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-left">
+                  <button onClick={() => { setMenuOpen(false); navigate("/profile"); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors text-left">
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><User className="w-4 h-4" /></div>
                     <span className="text-sm font-medium text-foreground">Mon profil</span>
                   </button>
