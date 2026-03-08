@@ -49,7 +49,7 @@ const Messages = () => {
         setUserInfo({
           name,
           firstName: profile.first_name || "U",
-          avatar: profile.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          avatar: profile.avatar_url || "",
         });
       }
       setIsReady(true);

@@ -97,7 +97,7 @@ const NewConversationDialog = ({ userId, onSelect, onClose }: NewConversationDia
           ) : (
             filtered.map((user, i) => {
               const name = `${user.first_name || "Utilisateur"} ${user.last_name || ""}`.trim();
-              const avatarUrl = user.avatar_url || `https://i.pravatar.cc/150?u=${user.user_id}`;
+              const avatarUrl = user.avatar_url || undefined;
               const isOnline = onlineUsers.has(user.user_id);
 
               return (
