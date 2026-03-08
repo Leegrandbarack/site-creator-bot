@@ -448,6 +448,10 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_verification_codes: { Args: never; Returns: undefined }
+      is_conversation_member: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
