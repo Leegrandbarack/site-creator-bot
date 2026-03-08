@@ -27,7 +27,6 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<Record<string, { first_name: string | null; last_name: string | null }>>({});
 
-  // Get current user
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) setUserId(data.user.id);
@@ -44,7 +43,6 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
     if (!error && data) {
       setPosts(data);
 
-      // Fetch profiles for post authors
       const authorIds = [...new Set(data.map((p) => p.user_id))];
       if (authorIds.length > 0) {
         const { data: profileData } = await supabase
@@ -53,14 +51,11 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
           .in("user_id", authorIds);
         if (profileData) {
           const map: Record<string, { first_name: string | null; last_name: string | null }> = {};
-          profileData.forEach((p) => {
-            map[p.user_id] = { first_name: p.first_name, last_name: p.last_name };
-          });
+          profileData.forEach((p) => { map[p.user_id] = { first_name: p.first_name, last_name: p.last_name }; });
           setProfiles(map);
         }
       }
 
-      // Fetch current user likes
       if (userId) {
         const { data: likes } = await supabase
           .from("post_likes")
@@ -78,7 +73,6 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
     if (userId) fetchPosts();
   }, [userId, fetchPosts]);
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("posts-realtime")
@@ -86,10 +80,7 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
         fetchPosts();
       })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [fetchPosts]);
 
   const handleLikeToggle = (postId: string, liked: boolean) => {
@@ -124,13 +115,14 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
         </div>
       ) : (
         posts.map((post, index) => (
-          <div key={post.id} style={{ animationDelay: `${index * 60}ms` }}>
+          <div key={post.id} className="animate-fade-in" style={{ animationDelay: `${index * 80}ms` }}>
             <PostCard
               post={post}
               currentUserId={userId}
               authorProfile={profiles[post.user_id] || null}
               isLiked={likedPostIds.has(post.id)}
               onLikeToggle={handleLikeToggle}
+              onPostDeleted={fetchPosts}
             />
           </div>
         ))

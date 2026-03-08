@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Share2, Send, Loader2, Reply, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart, MessageCircle, Share2, Send, Loader2, Reply, ChevronDown, ChevronUp, MoreHorizontal, Trash2, Edit3, Flag, Bookmark } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -21,6 +22,7 @@ interface PostCardProps {
   authorProfile: { first_name: string | null; last_name: string | null } | null;
   isLiked: boolean;
   onLikeToggle: (postId: string, liked: boolean) => void;
+  onPostDeleted?: () => void;
 }
 
 interface Comment {
@@ -32,12 +34,13 @@ interface Comment {
   likes_count: number;
 }
 
-const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }: PostCardProps) => {
+const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle, onPostDeleted }: PostCardProps) => {
   const [liked, setLiked] = useState(isLiked);
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [commentsCount, setCommentsCount] = useState(post.comments_count);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [commentProfiles, setCommentProfiles] = useState<Record<string, { first_name: string | null; last_name: string | null }>>({});
   const [newComment, setNewComment] = useState("");
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isSendingComment, setIsSendingComment] = useState(false);
@@ -46,7 +49,11 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
   const [likedCommentIds, setLikedCommentIds] = useState<Set<string>>(new Set());
   const [commentLikeAnimating, setCommentLikeAnimating] = useState<string | null>(null);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content || "");
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  const isOwner = post.user_id === currentUserId;
   const authorName = authorProfile
     ? `${authorProfile.first_name || ""} ${authorProfile.last_name || ""}`.trim() || "Utilisateur"
     : "Utilisateur";
@@ -72,6 +79,33 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
     }
   };
 
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from("posts").delete().eq("id", post.id).eq("user_id", currentUserId);
+      if (error) throw error;
+      toast.success("Publication supprimée");
+      onPostDeleted?.();
+    } catch {
+      toast.error("Erreur lors de la suppression");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editContent.trim()) return;
+    try {
+      const { error } = await supabase.from("posts").update({ content: editContent.trim() }).eq("id", post.id).eq("user_id", currentUserId);
+      if (error) throw error;
+      setIsEditing(false);
+      toast.success("Publication modifiée");
+      onPostDeleted?.(); // refresh
+    } catch {
+      toast.error("Erreur lors de la modification");
+    }
+  };
+
   const loadComments = useCallback(async () => {
     setIsLoadingComments(true);
     const { data } = await supabase
@@ -82,8 +116,20 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
       .limit(100);
     setComments(data || []);
 
-    // Load liked comment IDs
     if (data && data.length > 0) {
+      // Fetch comment author profiles
+      const userIds = [...new Set(data.map((c) => c.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, first_name, last_name")
+        .in("user_id", userIds);
+      if (profiles) {
+        const map: Record<string, { first_name: string | null; last_name: string | null }> = {};
+        profiles.forEach((p) => { map[p.user_id] = { first_name: p.first_name, last_name: p.last_name }; });
+        setCommentProfiles(map);
+      }
+
+      // Load liked comment IDs
       const { data: likes } = await supabase
         .from("comment_likes")
         .select("comment_id")
@@ -100,7 +146,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
     if (newState && comments.length === 0) loadComments();
   };
 
-  // Realtime comments
   useEffect(() => {
     if (!showComments) return;
     const channel = supabase
@@ -122,7 +167,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
         content: newComment.trim(),
       };
       if (replyingTo) insertData.parent_comment_id = replyingTo.id;
-
       const { error } = await supabase.from("post_comments").insert(insertData);
       if (error) throw error;
       setNewComment("");
@@ -139,7 +183,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
   const handleCommentLike = async (commentId: string) => {
     setCommentLikeAnimating(commentId);
     setTimeout(() => setCommentLikeAnimating(null), 500);
-
     const wasLiked = likedCommentIds.has(commentId);
     setLikedCommentIds((prev) => {
       const next = new Set(prev);
@@ -149,7 +192,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
     setComments((prev) =>
       prev.map((c) => c.id === commentId ? { ...c, likes_count: c.likes_count + (wasLiked ? -1 : 1) } : c)
     );
-
     try {
       if (wasLiked) {
         await supabase.from("comment_likes").delete().eq("comment_id", commentId).eq("user_id", currentUserId);
@@ -157,7 +199,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
         await supabase.from("comment_likes").insert({ comment_id: commentId, user_id: currentUserId });
       }
     } catch {
-      // revert
       setLikedCommentIds((prev) => {
         const next = new Set(prev);
         wasLiked ? next.add(commentId) : next.delete(commentId);
@@ -180,11 +221,17 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
     });
   };
 
+  const getCommentAuthorName = (userId: string) => {
+    const p = commentProfiles[userId];
+    if (p) return `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Utilisateur";
+    return "Utilisateur";
+  };
+
   const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => {
     const isCommentLiked = likedCommentIds.has(comment.id);
     const replies = getReplies(comment.id);
     const isExpanded = expandedReplies.has(comment.id);
-    const commentName = "Utilisateur";
+    const commentName = getCommentAuthorName(comment.user_id);
     const commentTime = formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: fr });
 
     return (
@@ -192,14 +239,13 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
         <div className="flex gap-2 group">
           <Avatar className={`${isReply ? "w-7 h-7" : "w-8 h-8"} shrink-0`}>
             <AvatarImage src={`https://i.pravatar.cc/150?u=${comment.user_id}`} />
-            <AvatarFallback className="text-xs">U</AvatarFallback>
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">{commentName[0]}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="bg-muted rounded-2xl px-3 py-2 inline-block max-w-full">
-              <p className="font-semibold text-xs text-foreground">{commentName}</p>
+              <p className="font-semibold text-xs text-foreground hover:underline cursor-pointer">{commentName}</p>
               <p className="text-sm text-foreground break-words">{comment.content}</p>
             </div>
-            {/* Comment actions */}
             <div className="flex items-center gap-3 mt-0.5 ml-2 text-xs">
               <span className="text-muted-foreground">{commentTime}</span>
               <button
@@ -226,7 +272,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
               )}
             </div>
 
-            {/* Replies toggle */}
             {!isReply && replies.length > 0 && (
               <button
                 onClick={() => toggleReplies(comment.id)}
@@ -237,7 +282,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
               </button>
             )}
 
-            {/* Replies */}
             {!isReply && isExpanded && replies.length > 0 && (
               <div className="mt-2 space-y-2">
                 {replies.map((reply) => (
@@ -252,23 +296,76 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
   };
 
   return (
-    <article className="bg-card rounded-xl shadow-sm border border-border overflow-hidden animate-fade-in">
+    <article className="bg-card rounded-xl shadow-sm border border-border overflow-hidden animate-fade-in hover:shadow-md transition-shadow duration-300">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 pb-2">
         <Avatar className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
           <AvatarImage src={avatarUrl} alt={authorName} />
-          <AvatarFallback>{authorName[0]}</AvatarFallback>
+          <AvatarFallback className="bg-primary/10 text-primary font-semibold">{authorName[0]}</AvatarFallback>
         </Avatar>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm text-foreground hover:underline cursor-pointer">{authorName}</p>
           <p className="text-xs text-muted-foreground">{timeAgo}</p>
         </div>
+
+        {/* Post Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors">
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem className="cursor-pointer gap-2">
+              <Bookmark className="w-4 h-4" /> Enregistrer la publication
+            </DropdownMenuItem>
+            {isOwner && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => { setIsEditing(true); setEditContent(post.content || ""); }} className="cursor-pointer gap-2">
+                  <Edit3 className="w-4 h-4" /> Modifier la publication
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete} disabled={isDeleting} className="cursor-pointer gap-2 text-destructive focus:text-destructive">
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Supprimer la publication
+                </DropdownMenuItem>
+              </>
+            )}
+            {!isOwner && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer gap-2 text-destructive focus:text-destructive">
+                  <Flag className="w-4 h-4" /> Signaler
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {post.content && (
-        <div className="px-4 pb-3">
-          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+      {/* Content - editing mode */}
+      {isEditing ? (
+        <div className="px-4 pb-3 animate-fade-in">
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            className="w-full bg-muted rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none min-h-[80px]"
+          />
+          <div className="flex gap-2 mt-2 justify-end">
+            <button onClick={() => setIsEditing(false)} className="px-4 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors text-muted-foreground">
+              Annuler
+            </button>
+            <button onClick={handleEdit} className="px-4 py-1.5 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
+              Enregistrer
+            </button>
+          </div>
         </div>
+      ) : (
+        post.content && (
+          <div className="px-4 pb-3">
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{post.content}</p>
+          </div>
+        )
       )}
 
       {post.image_url && (
@@ -294,7 +391,7 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
       {/* Action Buttons */}
       <div className="flex border-t border-border mx-4">
         <button onClick={handleLike} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg my-1 transition-all duration-200 ${liked ? "text-primary bg-primary/5 hover:bg-primary/10" : "text-muted-foreground hover:bg-muted"}`}>
-          <Heart className={`w-5 h-5 transition-all duration-300 ${liked ? "fill-primary text-primary" : ""} ${likeAnimating ? "scale-150" : "hover:scale-110"}`} />
+          <Heart className={`w-5 h-5 transition-all duration-300 ${liked ? "fill-primary text-primary" : ""} ${likeAnimating ? "animate-heart-pop" : "hover:scale-110"}`} />
           J'aime
         </button>
         <button onClick={toggleComments} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg my-1 transition-colors">
@@ -321,7 +418,6 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
             </div>
           )}
 
-          {/* Reply indicator */}
           {replyingTo && (
             <div className="flex items-center gap-2 mt-2 px-2 py-1 bg-muted/50 rounded-lg text-xs text-muted-foreground animate-fade-in">
               <Reply className="w-3 h-3" />
@@ -330,11 +426,10 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle }:
             </div>
           )}
 
-          {/* New Comment Input */}
           <div className="flex gap-2 mt-3">
             <Avatar className="w-8 h-8 shrink-0">
               <AvatarImage src={`https://i.pravatar.cc/150?u=${currentUserId}`} />
-              <AvatarFallback>U</AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">U</AvatarFallback>
             </Avatar>
             <div className="flex-1 flex gap-1">
               <input
