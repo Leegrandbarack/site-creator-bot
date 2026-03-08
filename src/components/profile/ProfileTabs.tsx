@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Image as ImageIcon, Users } from "lucide-react";
+import { Loader2, Image as ImageIcon, Users, UserX } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import PostCard from "@/components/dashboard/PostCard";
 
 interface ProfileTabsProps {
@@ -19,19 +22,16 @@ interface Post {
   created_at: string;
 }
 
+interface Friend {
+  userId: string;
+  name: string;
+  avatar: string;
+}
+
 const tabs = [
   { id: "posts", label: "Publications" },
   { id: "photos", label: "Photos" },
   { id: "friends", label: "Amis" },
-];
-
-const demoFriends = [
-  { name: "Marie Dupont", avatar: "https://i.pravatar.cc/150?img=5", mutual: 12 },
-  { name: "Jean Martin", avatar: "https://i.pravatar.cc/150?img=8", mutual: 8 },
-  { name: "Sophie Bernard", avatar: "https://i.pravatar.cc/150?img=9", mutual: 5 },
-  { name: "Lucas Petit", avatar: "https://i.pravatar.cc/150?img=12", mutual: 15 },
-  { name: "Amina K.", avatar: "https://i.pravatar.cc/150?img=1", mutual: 3 },
-  { name: "Paul D.", avatar: "https://i.pravatar.cc/150?img=4", mutual: 7 },
 ];
 
 const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
@@ -39,6 +39,9 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [isLoadingFriends, setIsLoadingFriends] = useState(false);
+  const navigate = useNavigate();
 
   const fetchPosts = useCallback(async () => {
     setIsLoading(true);
@@ -61,9 +64,35 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
     setIsLoading(false);
   }, [profileUserId, currentUserId]);
 
+  const fetchFriends = useCallback(async () => {
+    setIsLoadingFriends(true);
+    const { data } = await supabase
+      .from("friendships")
+      .select("*")
+      .eq("status", "accepted")
+      .or(`requester_id.eq.${profileUserId},addressee_id.eq.${profileUserId}`);
+
+    if (data) {
+      const friendList: Friend[] = data.map((f) => {
+        const friendId = f.requester_id === profileUserId ? f.addressee_id : f.requester_id;
+        return {
+          userId: friendId,
+          name: "Utilisateur",
+          avatar: `https://i.pravatar.cc/150?u=${friendId}`,
+        };
+      });
+      setFriends(friendList);
+    }
+    setIsLoadingFriends(false);
+  }, [profileUserId]);
+
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
+  useEffect(() => {
+    if (activeTab === "friends") fetchFriends();
+  }, [activeTab, fetchFriends]);
 
   const photoPosts = posts.filter((p) => p.image_url);
 
@@ -76,9 +105,7 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`relative px-5 py-3.5 text-sm font-semibold transition-colors ${
-              activeTab === tab.id
-                ? "text-primary"
-                : "text-muted-foreground hover:bg-muted"
+              activeTab === tab.id ? "text-primary" : "text-muted-foreground hover:bg-muted"
             }`}
           >
             {tab.label}
@@ -89,8 +116,8 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
         ))}
       </div>
 
-      {/* Tab Content */}
       <div className="animate-fade-in">
+        {/* Posts Tab */}
         {activeTab === "posts" && (
           <div className="max-w-[680px] mx-auto space-y-4">
             {isLoading ? (
@@ -121,6 +148,7 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
           </div>
         )}
 
+        {/* Photos Tab */}
         {activeTab === "photos" && (
           <div>
             {photoPosts.length === 0 ? (
@@ -136,12 +164,7 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
                     className="aspect-square rounded-xl overflow-hidden group cursor-pointer animate-fade-in"
                     style={{ animationDelay: `${i * 50}ms` }}
                   >
-                    <img
-                      src={post.image_url!}
-                      alt="Photo"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      loading="lazy"
-                    />
+                    <img src={post.image_url!} alt="Photo" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" loading="lazy" />
                   </div>
                 ))}
               </div>
@@ -149,21 +172,36 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
           </div>
         )}
 
+        {/* Friends Tab */}
         {activeTab === "friends" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {demoFriends.map((friend, i) => (
-              <div
-                key={friend.name}
-                className="flex items-center gap-3 bg-card rounded-xl border border-border p-3 hover:shadow-md transition-all duration-200 cursor-pointer animate-fade-in"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <img src={friend.avatar} alt={friend.name} className="w-16 h-16 rounded-xl object-cover" />
-                <div>
-                  <p className="font-semibold text-sm text-foreground hover:underline">{friend.name}</p>
-                  <p className="text-xs text-muted-foreground">{friend.mutual} amis en commun</p>
-                </div>
+          <div>
+            {isLoadingFriends ? (
+              <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+            ) : friends.length === 0 ? (
+              <div className="bg-card rounded-xl border border-border p-10 text-center">
+                <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">Aucun ami pour le moment.</p>
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {friends.map((friend, i) => (
+                  <div
+                    key={friend.userId}
+                    onClick={() => navigate(`/profile/${friend.userId}`)}
+                    className="flex items-center gap-3 bg-card rounded-xl border border-border p-3 hover:shadow-md transition-all duration-200 cursor-pointer animate-fade-in"
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    <Avatar className="w-16 h-16">
+                      <AvatarImage src={friend.avatar} alt={friend.name} />
+                      <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm text-foreground hover:underline">{friend.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
