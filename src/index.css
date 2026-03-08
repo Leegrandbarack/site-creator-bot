@@ -125,3 +125,7 @@ All colors MUST be HSL.
     animation: scale-in 0.2s ease-out both;
   }
 }
+
+/* Hide scrollbar */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
