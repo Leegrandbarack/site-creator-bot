@@ -13,7 +13,14 @@ interface DashboardNavbarProps {
 const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id);
+    });
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-14 bg-card shadow-sm border-b border-border flex items-center px-4 gap-2">
