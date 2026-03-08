@@ -85,22 +85,24 @@ export function useMessages(userId: string | null) {
       unreadMap.set(m.conversation_id, (unreadMap.get(m.conversation_id) || 0) + 1);
     });
 
-    const result: Conversation[] = convos.map((c) => {
-      const otherUserId = participantMap.get(c.id);
-      const profile = otherUserId ? profileMap.get(otherUserId) : null;
-      return {
-        id: c.id,
-        last_message_text: c.last_message_text,
-        last_message_at: c.last_message_at,
-        updated_at: c.updated_at,
-        participant: profile
-          ? { user_id: profile.user_id, first_name: profile.first_name, last_name: profile.last_name, avatar_url: profile.avatar_url }
-          : otherUserId
-          ? { user_id: otherUserId, first_name: null, last_name: null, avatar_url: null }
-          : null,
-        unread_count: unreadMap.get(c.id) || 0,
-      };
-    });
+    const result: Conversation[] = convos
+      .map((c) => {
+        const otherUserId = participantMap.get(c.id);
+        const profile = otherUserId ? profileMap.get(otherUserId) : null;
+        return {
+          id: c.id,
+          last_message_text: c.last_message_text,
+          last_message_at: c.last_message_at,
+          updated_at: c.updated_at,
+          participant: profile
+            ? { user_id: profile.user_id, first_name: profile.first_name, last_name: profile.last_name, avatar_url: profile.avatar_url }
+            : otherUserId
+            ? { user_id: otherUserId, first_name: null, last_name: null, avatar_url: null }
+            : null,
+          unread_count: unreadMap.get(c.id) || 0,
+        };
+      })
+      .filter((c) => c.participant && (c.participant.first_name || c.participant.last_name));
 
     setConversations(result);
     setLoading(false);
