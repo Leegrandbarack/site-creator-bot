@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import CreatePost from "./CreatePost";
 import PostCard from "./PostCard";
+import StoriesBar from "./StoriesBar";
 
 interface NewsFeedProps {
   user: { name: string; firstName: string; avatar: string };
@@ -109,6 +110,7 @@ const NewsFeed = ({ user }: NewsFeedProps) => {
 
   return (
     <div className="space-y-4">
+      <StoriesBar userAvatar={user.avatar} />
       <CreatePost user={user} userId={userId} onPostCreated={fetchPosts} />
 
       {isLoading ? (
