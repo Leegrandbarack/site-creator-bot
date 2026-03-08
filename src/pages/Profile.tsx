@@ -5,38 +5,32 @@ import { Loader2 } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
+import RightSidebar from "@/components/dashboard/RightSidebar";
 
 const Profile = () => {
   const { userId: paramUserId } = useParams();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
-
-  const user = {
-    name: "Utilisateur Demo",
-    firstName: "Utilisateur",
-    avatar: "https://i.pravatar.cc/150?img=3",
-  };
+  const [userInfo, setUserInfo] = useState({ name: "Utilisateur", firstName: "U", avatar: "https://i.pravatar.cc/150?img=3" });
 
   useEffect(() => {
     const init = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setCurrentUserId(session.user.id);
-          setIsReady(true);
-          return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setCurrentUserId(session.user.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("first_name, last_name, avatar_url")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (profile) {
+          const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
+          setUserInfo({
+            name,
+            firstName: profile.first_name || "U",
+            avatar: profile.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          });
         }
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) {
-          console.error("Anonymous sign-in error:", error);
-          await new Promise(r => setTimeout(r, 1000));
-          const { data: retryData } = await supabase.auth.signInAnonymously();
-          setCurrentUserId(retryData?.user?.id || null);
-        } else {
-          setCurrentUserId(data?.user?.id || null);
-        }
-      } catch (err) {
-        console.error("Session error:", err);
       }
       setIsReady(true);
     };
@@ -55,18 +49,24 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      <DashboardNavbar user={user} />
+      <DashboardNavbar user={userInfo} />
       <div className="pt-14">
         <ProfileHeader
           profileUserId={profileUserId!}
           currentUserId={currentUserId}
           isOwnProfile={profileUserId === currentUserId}
         />
-        <div className="max-w-[940px] mx-auto px-4">
-          <ProfileTabs
-            profileUserId={profileUserId!}
-            currentUserId={currentUserId}
-          />
+        <div className="max-w-[1100px] mx-auto px-4 mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
+            <ProfileTabs
+              profileUserId={profileUserId!}
+              currentUserId={currentUserId}
+            />
+            {/* Right Sidebar - desktop only */}
+            <aside className="hidden lg:block sticky top-20 self-start">
+              <RightSidebar />
+            </aside>
+          </div>
         </div>
       </div>
     </div>
