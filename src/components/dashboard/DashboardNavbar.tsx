@@ -47,10 +47,7 @@ const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
           <MessageCircle className="w-5 h-5 text-foreground group-hover:scale-110 transition-transform" />
           <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
         </button>
-        <button className="relative w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors group">
-          <Bell className="w-5 h-5 text-foreground group-hover:scale-110 transition-transform" />
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">5</span>
-        </button>
+        {userId && <NotificationsDropdown userId={userId} />}
 
         {/* Profile Menu */}
         <div className="relative">
