@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { UserPlus, MessageCircle, UserCheck, Camera, Edit3 } from "lucide-react";
+import { UserPlus, MessageCircle, UserCheck, Camera, Edit3, UserX, Clock, Check, X } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useFriendship } from "@/hooks/useFriendship";
 
 interface ProfileHeaderProps {
   profileUserId: string;
@@ -11,8 +12,12 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ profileUserId, currentUserId, isOwnProfile }: ProfileHeaderProps) => {
+  const {
+    status, isLoading, friendsCount,
+    sendRequest, acceptRequest, rejectRequest, removeFriend,
+  } = useFriendship(currentUserId, profileUserId);
+
   const [isFollowing, setIsFollowing] = useState(false);
-  const [isFriend, setIsFriend] = useState(false);
   const [bio, setBio] = useState("Passionné de technologie et de création 🚀 | Développeur | Amoureux de la vie");
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [editBio, setEditBio] = useState(bio);
@@ -20,11 +25,6 @@ const ProfileHeader = ({ profileUserId, currentUserId, isOwnProfile }: ProfileHe
   const profileName = "Utilisateur Demo";
   const avatarUrl = `https://i.pravatar.cc/150?u=${profileUserId}`;
   const coverUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=940&h=350&fit=crop";
-
-  const handleAddFriend = () => {
-    setIsFriend(!isFriend);
-    toast.success(isFriend ? "Demande d'ami annulée" : "Demande d'ami envoyée !");
-  };
 
   const handleFollow = () => {
     setIsFollowing(!isFollowing);
@@ -37,16 +37,61 @@ const ProfileHeader = ({ profileUserId, currentUserId, isOwnProfile }: ProfileHe
     toast.success("Bio mise à jour !");
   };
 
+  const handleFriendAction = async () => {
+    if (status === "none") {
+      await sendRequest();
+      toast.success("Demande d'ami envoyée !");
+    } else if (status === "accepted") {
+      await removeFriend();
+      toast.success("Ami retiré");
+    } else if (status === "pending_sent") {
+      await rejectRequest(); // cancel
+      toast.success("Demande annulée");
+    }
+  };
+
+  const renderFriendButton = () => {
+    if (isOwnProfile) return null;
+
+    switch (status) {
+      case "none":
+        return (
+          <Button onClick={handleFriendAction} disabled={isLoading} className="rounded-lg gap-2 transition-all duration-300">
+            <UserPlus className="w-4 h-4" /> Ajouter
+          </Button>
+        );
+      case "pending_sent":
+        return (
+          <Button onClick={handleFriendAction} disabled={isLoading} variant="outline" className="rounded-lg gap-2 transition-all duration-300">
+            <Clock className="w-4 h-4" /> Demande envoyée
+          </Button>
+        );
+      case "pending_received":
+        return (
+          <div className="flex gap-1">
+            <Button onClick={async () => { await acceptRequest(); toast.success("Ami ajouté !"); }} disabled={isLoading} className="rounded-lg gap-1.5 text-sm">
+              <Check className="w-4 h-4" /> Accepter
+            </Button>
+            <Button onClick={async () => { await rejectRequest(); toast.success("Demande refusée"); }} disabled={isLoading} variant="outline" className="rounded-lg gap-1.5 text-sm">
+              <X className="w-4 h-4" /> Refuser
+            </Button>
+          </div>
+        );
+      case "accepted":
+        return (
+          <Button onClick={handleFriendAction} disabled={isLoading} variant="secondary" className="rounded-lg gap-2 transition-all duration-300">
+            <UserCheck className="w-4 h-4" /> Ami(e)
+          </Button>
+        );
+    }
+  };
+
   return (
     <div className="bg-card shadow-sm">
       {/* Cover Photo */}
       <div className="relative max-w-[940px] mx-auto">
         <div className="relative h-[200px] sm:h-[280px] md:h-[350px] rounded-b-xl overflow-hidden group">
-          <img
-            src={coverUrl}
-            alt="Couverture"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-          />
+          <img src={coverUrl} alt="Couverture" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           {isOwnProfile && (
             <button className="absolute bottom-4 right-4 flex items-center gap-2 bg-card/90 backdrop-blur-sm text-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-card transition-colors shadow-lg opacity-0 group-hover:opacity-100 duration-300">
@@ -76,9 +121,10 @@ const ProfileHeader = ({ profileUserId, currentUserId, isOwnProfile }: ProfileHe
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:ml-[190px]">
           <div className="animate-fade-in">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{profileName}</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">247 amis · 1.2k abonnés</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {friendsCount} ami{friendsCount !== 1 ? "s" : ""} · 1.2k abonnés
+            </p>
 
-            {/* Bio */}
             {isEditingBio ? (
               <div className="mt-2 flex gap-2 items-start animate-fade-in">
                 <textarea
@@ -113,13 +159,7 @@ const ProfileHeader = ({ profileUserId, currentUserId, isOwnProfile }: ProfileHe
               </Button>
             ) : (
               <>
-                <Button
-                  onClick={handleAddFriend}
-                  className={`rounded-lg gap-2 transition-all duration-300 ${isFriend ? "bg-muted text-foreground hover:bg-muted/80" : ""}`}
-                >
-                  {isFriend ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                  {isFriend ? "Ami(e)" : "Ajouter"}
-                </Button>
+                {renderFriendButton()}
                 <Button variant="secondary" className="rounded-lg gap-2">
                   <MessageCircle className="w-4 h-4" /> Message
                 </Button>
