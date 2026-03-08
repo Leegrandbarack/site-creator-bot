@@ -16,10 +16,22 @@ const Dashboard = () => {
 
   useEffect(() => {
     const ensureSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // Auto sign-in anonymously
-        await supabase.auth.signInAnonymously();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsReady(true);
+          return;
+        }
+        // Try anonymous sign-in
+        const { error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          console.error("Anonymous sign-in error:", error);
+          // Retry once after a short delay
+          await new Promise(r => setTimeout(r, 1000));
+          await supabase.auth.signInAnonymously();
+        }
+      } catch (err) {
+        console.error("Session error:", err);
       }
       setIsReady(true);
     };
