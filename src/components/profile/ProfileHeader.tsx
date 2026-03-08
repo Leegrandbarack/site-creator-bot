@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
-import { UserPlus, MessageCircle, UserCheck, Camera, Edit3, Clock, Check, X, MapPin, Briefcase, GraduationCap, CalendarDays } from "lucide-react";
+import { UserPlus, MessageCircle, UserCheck, Camera, Edit3, Clock, Check, X, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useFriendship } from "@/hooks/useFriendship";
 import { supabase } from "@/integrations/supabase/client";
@@ -227,6 +233,29 @@ const ProfileHeader = ({ profileUserId, currentUserId, isOwnProfile }: ProfileHe
                 </Button>
               </>
             )}
+            {/* Three-dots Options Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-lg">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {isOwnProfile ? (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/settings")}>Paramètres du profil</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toast.info("Journal d'activité")}>Journal d'activité</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toast.info("Archiver le profil")}>Archiver</DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => toast.info("Utilisateur bloqué")}>Bloquer</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toast.info("Utilisateur signalé")}>Signaler le profil</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toast.info("Lien copié !")}>Copier le lien du profil</DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

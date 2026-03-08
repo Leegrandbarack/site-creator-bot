@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Image as ImageIcon, Users, MapPin, Briefcase, GraduationCap, CalendarDays, Heart, X } from "lucide-react";
+import { Loader2, Image as ImageIcon, Users, MapPin, Briefcase, GraduationCap, CalendarDays, Heart, X, Mail, Phone, Plus, ChevronDown } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import PostCard from "@/components/dashboard/PostCard";
+import StoryViewer from "@/components/dashboard/StoryViewer";
 
 interface ProfileTabsProps {
   profileUserId: string;
@@ -33,6 +34,15 @@ const tabs = [
   { id: "about", label: "À propos" },
   { id: "friends", label: "Amis" },
   { id: "photos", label: "Photos" },
+  { id: "stories", label: "Stories" },
+];
+
+// Mock stories for profile (will be dynamic later)
+const mockStories = [
+  { name: "Vacances", avatar: "https://i.pravatar.cc/150?img=5", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=1000&fit=crop", hasNew: true },
+  { name: "Travail", avatar: "https://i.pravatar.cc/150?img=8", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=1000&fit=crop", hasNew: true },
+  { name: "Soirée", avatar: "https://i.pravatar.cc/150?img=1", image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=1000&fit=crop", hasNew: false },
+  { name: "Sport", avatar: "https://i.pravatar.cc/150?img=4", image: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=600&h=1000&fit=crop", hasNew: true },
 ];
 
 const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
@@ -44,7 +54,11 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
   const [isLoadingFriends, setIsLoadingFriends] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [profileInfo, setProfileInfo] = useState<any>(null);
+  const [storyViewerIndex, setStoryViewerIndex] = useState<number | null>(null);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const navigate = useNavigate();
+
+  const isOwnProfile = profileUserId === currentUserId;
 
   const fetchPosts = useCallback(async () => {
     setIsLoading(true);
@@ -137,6 +151,28 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
             )}
           </button>
         ))}
+        {/* More dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowMoreMenu(!showMoreMenu)}
+            className="relative px-5 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-muted whitespace-nowrap flex items-center gap-1"
+          >
+            Plus <ChevronDown className="w-3 h-3" />
+          </button>
+          {showMoreMenu && (
+            <div className="absolute top-full right-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 z-50 min-w-[160px] animate-fade-in">
+              {["Vidéos", "Check-ins", "Événements"].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setShowMoreMenu(false)}
+                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="animate-fade-in">
@@ -172,6 +208,11 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
                       <CalendarDays className="w-4 h-4 shrink-0" />
                       <span>Né(e) le {new Date(profileInfo.birth_date).toLocaleDateString("fr-FR")}</span>
                     </div>
+                  )}
+                  {isOwnProfile && (
+                    <Button variant="secondary" className="w-full mt-2 rounded-lg" onClick={() => navigate("/settings")}>
+                      Modifier les détails
+                    </Button>
                   )}
                 </div>
               </div>
@@ -271,9 +312,24 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
         {/* About Tab */}
         {activeTab === "about" && (
           <div className="max-w-[680px] mx-auto bg-card rounded-xl border border-border p-6 shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-foreground">À propos</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">À propos</h2>
+              {isOwnProfile && (
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={() => navigate("/settings")}>
+                  Modifier
+                </Button>
+              )}
+            </div>
 
-            <div className="space-y-4">
+            {profileInfo?.bio && (
+              <div className="bg-muted/50 rounded-lg p-4">
+                <p className="text-sm text-foreground text-center italic">"{profileInfo.bio}"</p>
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wide">Informations personnelles</h3>
+              
               <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                 <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
                 <div>
@@ -311,12 +367,24 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
                   </div>
                 </div>
               )}
+
+              <h3 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wide pt-4">Contact</h3>
+              
               {profileInfo?.email && (
                 <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <CalendarDays className="w-5 h-5 text-muted-foreground mt-0.5" />
+                  <Mail className="w-5 h-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-foreground">Email</p>
                     <p className="text-sm text-muted-foreground">{profileInfo.email}</p>
+                  </div>
+                </div>
+              )}
+              {profileInfo?.phone && (
+                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Phone className="w-5 h-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Téléphone</p>
+                    <p className="text-sm text-muted-foreground">{profileInfo.phone}</p>
                   </div>
                 </div>
               )}
@@ -324,9 +392,66 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
           </div>
         )}
 
+        {/* Stories Tab */}
+        {activeTab === "stories" && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-foreground">Stories</h2>
+              {isOwnProfile && (
+                <Button className="rounded-lg gap-2">
+                  <Plus className="w-4 h-4" /> Ajouter une story
+                </Button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {mockStories.map((story, i) => (
+                <button
+                  key={i}
+                  onClick={() => setStoryViewerIndex(i)}
+                  className="relative aspect-[9/16] max-h-[320px] rounded-xl overflow-hidden group cursor-pointer animate-fade-in"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
+                  <img
+                    src={story.image}
+                    alt={story.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <span className="absolute bottom-3 left-3 right-3 text-sm font-semibold text-white truncate">
+                    {story.name}
+                  </span>
+                  {story.hasNew && (
+                    <div className="absolute top-3 left-3 w-3 h-3 bg-primary rounded-full border-2 border-card" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {storyViewerIndex !== null && (
+              <StoryViewer
+                stories={mockStories}
+                initialIndex={storyViewerIndex}
+                onClose={() => setStoryViewerIndex(null)}
+              />
+            )}
+          </div>
+        )}
+
         {/* Photos Tab */}
         {activeTab === "photos" && (
           <div>
+            <div className="flex gap-2 mb-4">
+              {["Toutes les photos", "Albums", "Photos taguées"].map((filter, i) => (
+                <Button
+                  key={filter}
+                  variant={i === 0 ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-lg"
+                >
+                  {filter}
+                </Button>
+              ))}
+            </div>
             {photoPosts.length === 0 ? (
               <div className="bg-card rounded-xl border border-border p-10 text-center">
                 <ImageIcon className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
