@@ -131,18 +131,10 @@ export function useMessages(userId: string | null) {
       }
     }
 
-    const { data: newConv, error: convError } = await supabase
-      .from("conversations")
-      .insert({})
-      .select("id")
-      .single();
+    const { data: convId, error: convError } = await supabase
+      .rpc("create_conversation_with_participant", { other_user_id: otherUserId });
 
-    if (convError || !newConv) return null;
-
-    await supabase.from("conversation_participants").insert([
-      { conversation_id: newConv.id, user_id: userId },
-      { conversation_id: newConv.id, user_id: otherUserId },
-    ]);
+    if (convError || !convId) return null;
 
     await fetchConversations();
     return newConv.id;
