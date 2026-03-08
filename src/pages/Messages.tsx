@@ -23,11 +23,12 @@ const Messages = () => {
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-        return;
+      if (session) {
+        setUserId(session.user.id);
+      } else {
+        const { data } = await supabase.auth.signInAnonymously();
+        if (data.session) setUserId(data.session.user.id);
       }
-      setUserId(session.user.id);
 
       const { data: profile } = await supabase
         .from("profiles")
