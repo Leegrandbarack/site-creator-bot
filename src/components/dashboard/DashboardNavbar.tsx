@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell, MessageCircle, ChevronDown, Settings, LogOut, User } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import NotificationsDropdown from "./NotificationsDropdown";
 
 interface DashboardNavbarProps {
   user: { name: string; firstName: string; avatar: string };
