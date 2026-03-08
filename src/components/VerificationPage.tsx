@@ -97,11 +97,7 @@ const VerificationPage = ({ phoneNumber, devCode: initialDevCode, onBack }: Veri
               Votre numéro {phoneNumber} a été vérifié avec succès.
             </p>
             <Button
-              onClick={() => {
-                const nav = document.createElement('a');
-                nav.href = '/dashboard';
-                window.location.href = '/dashboard';
-              }}
+              onClick={() => navigate("/dashboard")}
               className="bg-primary hover:bg-primary/90"
             >
               Accéder au tableau de bord
