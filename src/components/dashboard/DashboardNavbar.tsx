@@ -25,9 +25,9 @@ const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
 
   const navItems = [
     { icon: Home, path: "/dashboard", label: "Accueil" },
+    { icon: Users, path: "/friends", label: "Amis" },
     { icon: Video, path: "#", label: "Vidéos" },
-    { icon: Store, path: "#", label: "Marketplace" },
-    { icon: Users, path: "#", label: "Groupes" },
+    { icon: Store, path: "/users", label: "Utilisateurs" },
   ];
 
   return (
