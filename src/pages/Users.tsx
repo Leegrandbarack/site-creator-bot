@@ -36,7 +36,9 @@ const Users = () => {
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, user_id, first_name, last_name, avatar_url, bio")
-        .neq("user_id", session.user.id);
+        .neq("user_id", session.user.id)
+        .not("first_name", "is", null)
+        .neq("first_name", "");
 
       const { data: presence } = await supabase
         .from("user_presence")

@@ -30,6 +30,8 @@ const NewConversationDialog = ({ userId, onSelect, onClose }: NewConversationDia
         .from("profiles")
         .select("user_id, first_name, last_name, avatar_url")
         .neq("user_id", userId)
+        .not("first_name", "is", null)
+        .neq("first_name", "")
         .limit(50);
       setUsers(data || []);
       setLoading(false);
