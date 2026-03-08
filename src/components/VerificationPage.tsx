@@ -13,6 +13,7 @@ interface VerificationPageProps {
 }
 
 const VerificationPage = ({ phoneNumber, devCode: initialDevCode, onBack }: VerificationPageProps) => {
+  const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [devCode, setDevCode] = useState<string | null>(initialDevCode || null);
   const [isLoading, setIsLoading] = useState(false);
