@@ -1,5 +1,6 @@
 import { Users, Image, UsersRound, Bookmark, Calendar, ShoppingBag } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 
 interface LeftSidebarProps {
   user: { name: string; firstName: string; avatar: string };
@@ -15,10 +16,12 @@ const shortcuts = [
 ];
 
 const LeftSidebar = ({ user }: LeftSidebarProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-1">
       {/* User Profile Link */}
-      <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group">
+      <button onClick={() => navigate("/profile")} className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-card transition-colors group">
         <Avatar className="w-9 h-9 group-hover:ring-2 group-hover:ring-primary/20 transition-all">
           <AvatarImage src={user.avatar} alt={user.name} />
           <AvatarFallback>{user.firstName[0]}</AvatarFallback>
