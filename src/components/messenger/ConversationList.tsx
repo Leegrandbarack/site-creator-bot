@@ -74,6 +74,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers, onNe
             const name = conv.participant
               ? `${conv.participant.first_name || "Utilisateur"} ${conv.participant.last_name || ""}`.trim()
               : "Utilisateur";
+            const avatarUrl = conv.participant?.avatar_url || `https://i.pravatar.cc/150?u=${conv.participant?.user_id}`;
             const isOnline = conv.participant ? onlineUsers.has(conv.participant.user_id) : false;
             const isActive = conv.id === activeId;
 
@@ -88,7 +89,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers, onNe
               >
                 <div className="relative shrink-0">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${conv.participant?.user_id}`} />
+                    <AvatarImage src={avatarUrl} />
                     <AvatarFallback className="bg-primary/10 text-primary font-semibold">{name[0]}</AvatarFallback>
                   </Avatar>
                   {isOnline && (

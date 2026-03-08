@@ -6,6 +6,7 @@ import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import ConversationList from "@/components/messenger/ConversationList";
 import ChatView from "@/components/messenger/ChatView";
 import NewConversationDialog from "@/components/messenger/NewConversationDialog";
+import { useNavigate } from "react-router-dom";
 
 const Messages = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -13,11 +14,8 @@ const Messages = () => {
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [showNewConv, setShowNewConv] = useState(false);
-  const [user] = useState({
-    name: "Utilisateur Demo",
-    firstName: "Utilisateur",
-    avatar: "https://i.pravatar.cc/150?img=3",
-  });
+  const [userInfo, setUserInfo] = useState({ name: "Utilisateur", firstName: "U", avatar: "https://i.pravatar.cc/150?img=3" });
+  const navigate = useNavigate();
 
   const { conversations, loading, fetchConversations, getOrCreateConversation } = useMessages(userId);
   usePresence(userId);
@@ -25,16 +23,30 @@ const Messages = () => {
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUserId(session.user.id);
-      } else {
-        const { data } = await supabase.auth.signInAnonymously();
-        if (data.session) setUserId(data.session.user.id);
+      if (!session) {
+        navigate("/login");
+        return;
+      }
+      setUserId(session.user.id);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, avatar_url")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (profile) {
+        const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Utilisateur";
+        setUserInfo({
+          name,
+          firstName: profile.first_name || "U",
+          avatar: profile.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+        });
       }
       setIsReady(true);
     };
     init();
-  }, []);
+  }, [navigate]);
 
   // Fetch online users
   useEffect(() => {
@@ -93,7 +105,7 @@ const Messages = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      <DashboardNavbar user={user} />
+      <DashboardNavbar user={userInfo} />
       <div className="pt-14 flex h-[calc(100vh-3.5rem)] max-w-[1400px] mx-auto">
         {/* Conversation list */}
         <div className={`w-full lg:w-[360px] shrink-0 border-r border-border bg-card ${activeConvId ? "hidden lg:flex lg:flex-col" : "flex flex-col"}`}>
