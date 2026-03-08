@@ -115,8 +115,8 @@ const NotificationsDropdown = ({ userId }: NotificationsDropdownProps) => {
                   >
                     <div className="relative shrink-0">
                       <Avatar className="w-10 h-10 ring-2 ring-background">
-                        <AvatarImage src={`https://i.pravatar.cc/150?u=${notif.from_user_id}`} />
-                        <AvatarFallback>U</AvatarFallback>
+                        <AvatarImage src={undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">U</AvatarFallback>
                       </Avatar>
                       <span className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center ${getIconBg(notif.type)}`}>
                         {getIcon(notif.type)}
