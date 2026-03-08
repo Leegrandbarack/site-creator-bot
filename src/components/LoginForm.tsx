@@ -19,15 +19,12 @@ const LoginForm = ({ onSignupComplete }: LoginFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Veuillez remplir tous les champs");
-      return;
-    }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // Connexion anonyme rapide - n'importe qui peut se connecter
+    const { error } = await supabase.auth.signInAnonymously();
     setLoading(false);
     if (error) {
-      toast.error("Email ou mot de passe incorrect");
+      toast.error("Erreur de connexion, réessayez");
       return;
     }
     navigate("/dashboard");
