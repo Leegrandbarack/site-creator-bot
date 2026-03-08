@@ -16,7 +16,6 @@ const shortcuts = [
 ];
 
 const LeftSidebar = ({ user }: LeftSidebarProps) => {
-  return (
   const navigate = useNavigate();
 
   return (
