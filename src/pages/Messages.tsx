@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, MessageSquare, UserPlus } from "lucide-react";
 import { useMessages, usePresence } from "@/hooks/useMessages";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 import ConversationList from "@/components/messenger/ConversationList";
 import ChatView from "@/components/messenger/ChatView";
 import NewConversationDialog from "@/components/messenger/NewConversationDialog";
@@ -78,7 +79,7 @@ const Messages = () => {
 
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen pb-14 lg:pb-0 bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">Chargement de Messenger...</p>
@@ -147,6 +148,8 @@ const Messages = () => {
           onClose={() => setShowNewConv(false)}
         />
       )}
+      <MobileBottomNav />
+
     </div>
   );
 };

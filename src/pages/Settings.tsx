@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, User, Shield, Lock, Bell, Globe, FileText, Ban, AppWindow, Moon, HelpCircle, ChevronLeft, Trash2, PowerOff, Camera, Smartphone, Monitor, Laptop, X } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -384,9 +385,9 @@ const Settings = () => {
   const activeItem = menuItems.find((m) => m.id === activeSection);
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-muted pb-14 lg:pb-0">
       <DashboardNavbar user={user} />
-      <div className="pt-14 max-w-5xl mx-auto px-3 py-6">
+      <div className="pt-14 max-w-5xl mx-auto px-2 sm:px-3 py-4 sm:py-6">
         {/* Mobile header */}
         <div className="flex items-center gap-3 mb-4 lg:hidden">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -454,12 +455,13 @@ const Settings = () => {
 
           {/* Content */}
           <main className="flex-1 min-w-0">
-            <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6">
               {renderContent()}
             </div>
           </main>
         </div>
       </div>
+      <MobileBottomNav />
     </div>
   );
 };

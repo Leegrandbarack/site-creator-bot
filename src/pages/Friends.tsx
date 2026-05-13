@@ -6,6 +6,7 @@ import {
   UserPlus, UserCheck, UserX, Users, Clock, Search, Loader2, Check, X, MessageCircle, ChevronRight
 } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 import { toast } from "sonner";
 
 interface UserProfile {
@@ -256,7 +257,7 @@ const Friends = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen pb-14 lg:pb-0 bg-background flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
@@ -521,6 +522,7 @@ const Friends = () => {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+      <MobileBottomNav />
     </div>
   );
 };

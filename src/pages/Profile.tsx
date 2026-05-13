@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import RightSidebar from "@/components/dashboard/RightSidebar";
@@ -41,7 +42,7 @@ const Profile = () => {
 
   if (!isReady || !currentUserId) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
+      <div className="min-h-screen pb-14 lg:pb-0 bg-muted flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
@@ -69,6 +70,8 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      <MobileBottomNav />
+
     </div>
   );
 };
