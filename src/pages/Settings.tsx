@@ -454,12 +454,13 @@ const Settings = () => {
 
           {/* Content */}
           <main className="flex-1 min-w-0">
-            <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+            <div className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-6">
               {renderContent()}
             </div>
           </main>
         </div>
       </div>
+      <MobileBottomNav />
     </div>
   );
 };
