@@ -522,6 +522,7 @@ const Friends = () => {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+      <MobileBottomNav />
     </div>
   );
 };
