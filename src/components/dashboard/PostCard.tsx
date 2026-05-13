@@ -400,10 +400,21 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle, o
         <button onClick={toggleComments} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg my-1 transition-colors">
           <MessageCircle className="w-5 h-5 hover:scale-110 transition-transform" /> Commenter
         </button>
-        <button className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg my-1 transition-colors">
+        <button onClick={() => setShareOpen(true)} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg my-1 transition-colors">
           <Share2 className="w-5 h-5 hover:scale-110 transition-transform" /> Partager
         </button>
       </div>
+
+      <ShareDialog
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        postId={post.id}
+        postContent={post.content}
+        postImage={post.image_url}
+        authorName={authorName}
+        currentUserId={currentUserId}
+        onShared={() => setSharesCount((c) => c + 1)}
+      />
 
       {/* Comments Section */}
       {showComments && (
