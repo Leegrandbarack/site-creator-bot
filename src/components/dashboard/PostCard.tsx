@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Heart, MessageCircle, Share2, Send, Loader2, Reply, ChevronDown, ChevronUp, MoreHorizontal, Trash2, Edit3, Flag, Bookmark } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ShareDialog from "./ShareDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
