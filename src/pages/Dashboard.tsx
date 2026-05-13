@@ -6,6 +6,7 @@ import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import LeftSidebar from "@/components/dashboard/LeftSidebar";
 import NewsFeed from "@/components/dashboard/NewsFeed";
 import RightSidebar from "@/components/dashboard/RightSidebar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 
 const Dashboard = () => {
   const [isReady, setIsReady] = useState(false);
