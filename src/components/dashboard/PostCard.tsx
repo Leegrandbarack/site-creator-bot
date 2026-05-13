@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Heart, MessageCircle, Share2, Send, Loader2, Reply, ChevronDown, ChevronUp, MoreHorizontal, Trash2, Edit3, Flag, Bookmark } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ShareDialog from "./ShareDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -52,6 +53,8 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle, o
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content || "");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [sharesCount, setSharesCount] = useState(post.shares_count);
 
   const isOwner = post.user_id === currentUserId;
   const authorName = authorProfile
@@ -384,7 +387,7 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle, o
         </span>
         <div className="flex gap-3">
           <button onClick={toggleComments} className="hover:underline">{commentsCount} commentaires</button>
-          <span>{post.shares_count} partages</span>
+          <button onClick={() => setSharesCount(sharesCount)} className="hover:underline">{sharesCount} partages</button>
         </div>
       </div>
 
@@ -397,10 +400,21 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle, o
         <button onClick={toggleComments} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg my-1 transition-colors">
           <MessageCircle className="w-5 h-5 hover:scale-110 transition-transform" /> Commenter
         </button>
-        <button className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg my-1 transition-colors">
+        <button onClick={() => setShareOpen(true)} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg my-1 transition-colors">
           <Share2 className="w-5 h-5 hover:scale-110 transition-transform" /> Partager
         </button>
       </div>
+
+      <ShareDialog
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        postId={post.id}
+        postContent={post.content}
+        postImage={post.image_url}
+        authorName={authorName}
+        currentUserId={currentUserId}
+        onShared={() => setSharesCount((c) => c + 1)}
+      />
 
       {/* Comments Section */}
       {showComments && (
