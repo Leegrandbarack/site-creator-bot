@@ -427,13 +427,7 @@ const ProfileTabs = ({ profileUserId, currentUserId }: ProfileTabsProps) => {
               ))}
             </div>
 
-            {storyViewerIndex !== null && (
-              <StoryViewer
-                stories={mockStories}
-                initialIndex={storyViewerIndex}
-                onClose={() => setStoryViewerIndex(null)}
-              />
-            )}
+            {/* Story viewer désactivé pour cette vue mock */}
           </div>
         )}
 
