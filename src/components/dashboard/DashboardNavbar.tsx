@@ -32,9 +32,9 @@ const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-14 bg-card shadow-sm border-b border-border">
-      <div className="h-full flex items-center justify-between px-4 max-w-[1920px] mx-auto">
+      <div className="h-full flex items-center justify-between px-2 sm:px-4 max-w-[1920px] mx-auto gap-2">
         {/* Left: Logo + Search */}
-        <div className="flex items-center gap-2 w-[280px] shrink-0">
+        <div className="flex items-center gap-2 lg:w-[280px] shrink-0">
           <svg viewBox="0 0 36 36" className="w-10 h-10 fill-primary shrink-0 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/dashboard")}>
             <path d="M20.181 35.87C29.094 34.791 36 27.202 36 18c0-9.941-8.059-18-18-18S0 8.059 0 18c0 4.991 2.032 9.508 5.312 12.755V35l4.898-2.724A17.9 17.9 0 0 0 18 33.6c.725 0 1.439-.043 2.139-.126l.042-.005Z" />
             <path fill="white" d="M24.5 22.5L25.5 18h-4v-2.5c0-1.25.6-2.5 2.6-2.5h2v-4s-1.8-.3-3.6-.3c-3.7 0-6 2.2-6 6.3v3h-4v4.5h4v11c.8.1 1.6.2 2.5.2s1.7-.1 2.5-.2v-11h3z" />
