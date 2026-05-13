@@ -53,6 +53,8 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle, o
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content || "");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [sharesCount, setSharesCount] = useState(post.shares_count);
 
   const isOwner = post.user_id === currentUserId;
   const authorName = authorProfile
