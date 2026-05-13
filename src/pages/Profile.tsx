@@ -42,7 +42,7 @@ const Profile = () => {
 
   if (!isReady || !currentUserId) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
+      <div className="min-h-screen pb-14 lg:pb-0 bg-muted flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );

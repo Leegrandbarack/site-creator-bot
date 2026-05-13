@@ -79,7 +79,7 @@ const Messages = () => {
 
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen pb-14 lg:pb-0 bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">Chargement de Messenger...</p>
