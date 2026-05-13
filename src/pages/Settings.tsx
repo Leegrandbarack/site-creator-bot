@@ -384,9 +384,9 @@ const Settings = () => {
   const activeItem = menuItems.find((m) => m.id === activeSection);
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-muted pb-14 lg:pb-0">
       <DashboardNavbar user={user} />
-      <div className="pt-14 max-w-5xl mx-auto px-3 py-6">
+      <div className="pt-14 max-w-5xl mx-auto px-2 sm:px-3 py-4 sm:py-6">
         {/* Mobile header */}
         <div className="flex items-center gap-3 mb-4 lg:hidden">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
