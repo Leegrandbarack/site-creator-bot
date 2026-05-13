@@ -6,6 +6,7 @@ import {
   UserPlus, UserCheck, UserX, Users, Clock, Search, Loader2, Check, X, MessageCircle, ChevronRight
 } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 import { toast } from "sonner";
 
 interface UserProfile {

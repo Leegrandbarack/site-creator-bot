@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, MessageSquare, UserPlus } from "lucide-react";
 import { useMessages, usePresence } from "@/hooks/useMessages";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 import ConversationList from "@/components/messenger/ConversationList";
 import ChatView from "@/components/messenger/ChatView";
 import NewConversationDialog from "@/components/messenger/NewConversationDialog";
