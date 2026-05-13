@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, User, Shield, Lock, Bell, Globe, FileText, Ban, AppWindow, Moon, HelpCircle, ChevronLeft, Trash2, PowerOff, Camera, Smartphone, Monitor, Laptop, X } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import MobileBottomNav from "@/components/dashboard/MobileBottomNav";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
