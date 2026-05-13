@@ -387,7 +387,7 @@ const PostCard = ({ post, currentUserId, authorProfile, isLiked, onLikeToggle, o
         </span>
         <div className="flex gap-3">
           <button onClick={toggleComments} className="hover:underline">{commentsCount} commentaires</button>
-          <span>{post.shares_count} partages</span>
+          <button onClick={() => setSharesCount(sharesCount)} className="hover:underline">{sharesCount} partages</button>
         </div>
       </div>
 
