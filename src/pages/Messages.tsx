@@ -148,6 +148,8 @@ const Messages = () => {
           onClose={() => setShowNewConv(false)}
         />
       )}
+      <MobileBottomNav />
+
     </div>
   );
 };

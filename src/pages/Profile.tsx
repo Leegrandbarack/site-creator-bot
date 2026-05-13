@@ -70,6 +70,8 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      <MobileBottomNav />
+
     </div>
   );
 };
