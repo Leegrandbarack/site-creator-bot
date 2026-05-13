@@ -75,10 +75,10 @@ const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-1 w-[280px] justify-end shrink-0">
-          {/* Mobile menu */}
-          <button className="lg:hidden w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
-            <Menu className="w-5 h-5 text-foreground" />
+        <div className="flex items-center gap-1 lg:w-[280px] justify-end shrink-0">
+          {/* Mobile search */}
+          <button onClick={() => navigate("/users")} className="md:hidden w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
+            <Search className="w-4 h-4 text-foreground" />
           </button>
 
           <button
