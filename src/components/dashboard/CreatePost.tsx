@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Image, Video, Smile, Send, X, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Smile, Send, X, Loader2, Video, Clapperboard } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -30,6 +31,7 @@ const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
     }
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    setExpanded(true);
   };
 
   const removeImage = () => {
@@ -41,6 +43,11 @@ const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
   const handleEmojiSelect = (emoji: string) => {
     setContent((prev) => prev + emoji);
     textareaRef.current?.focus();
+  };
+
+  const openPhoto = () => {
+    setExpanded(true);
+    fileInputRef.current?.click();
   };
 
   const handlePublish = async () => {
@@ -76,6 +83,7 @@ const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
       setContent("");
       removeImage();
       setShowEmoji(false);
+      setExpanded(false);
       onPostCreated();
       toast.success("Publication créée !");
     } catch (err: any) {
@@ -87,26 +95,37 @@ const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
   };
 
   return (
-    <div className="bg-card rounded-xl shadow-sm border border-border p-4">
-      <div className="flex gap-3">
+    <div className="bg-card rounded-xl shadow-sm border border-border">
+      {/* Top row : avatar + "Quoi de neuf ?" bubble */}
+      <div className="flex items-center gap-3 px-3 sm:px-4 pt-3 pb-2">
         <Avatar className="w-10 h-10 shrink-0">
           <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback>{user.name[0]}</AvatarFallback>
+          <AvatarFallback>{user.firstName[0]}</AvatarFallback>
         </Avatar>
-        <textarea
-          ref={textareaRef}
-          placeholder={`Quoi de neuf, ${user.firstName} ?`}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="flex-1 resize-none bg-muted rounded-xl px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all min-h-[44px]"
-          rows={content.length > 80 ? 3 : 1}
-        />
+        {expanded ? (
+          <textarea
+            ref={textareaRef}
+            autoFocus
+            placeholder={`Quoi de neuf, ${user.firstName} ?`}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="flex-1 resize-none bg-muted rounded-xl px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all min-h-[44px]"
+            rows={content.length > 80 ? 3 : 2}
+          />
+        ) : (
+          <button
+            onClick={() => setExpanded(true)}
+            className="flex-1 text-left bg-muted hover:bg-muted/80 transition-colors rounded-full px-4 py-2.5 text-[15px] text-muted-foreground"
+          >
+            Quoi de neuf, {user.firstName} ?
+          </button>
+        )}
       </div>
 
-      {/* Image Preview */}
+      {/* Image preview */}
       {imagePreview && (
-        <div className="relative mt-3 rounded-xl overflow-hidden border border-border">
-          <img src={imagePreview} alt="Preview" className="w-full max-h-[300px] object-cover" />
+        <div className="relative mx-3 sm:mx-4 mb-2 rounded-xl overflow-hidden border border-border">
+          <img src={imagePreview} alt="Preview" className="w-full max-h-[320px] object-cover" />
           <button
             onClick={removeImage}
             className="absolute top-2 right-2 w-8 h-8 bg-foreground/70 text-background rounded-full flex items-center justify-center hover:bg-foreground/90 transition-colors"
@@ -116,49 +135,80 @@ const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
         </div>
       )}
 
-      {/* Emoji Picker */}
+      {/* Emoji picker */}
       {showEmoji && (
-        <div className="mt-3">
+        <div className="px-3 sm:px-4 pb-2">
           <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmoji(false)} />
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-        <div className="flex gap-1">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageSelect}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors text-secondary"
-          >
-            <Image className="w-5 h-5" /> Photo
-          </button>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageSelect}
+      />
+
+      {/* Action row (Facebook style) */}
+      <div className="border-t border-border grid grid-cols-3 divide-x divide-border">
+        <button
+          onClick={() => { setExpanded(true); toast.info("Direct bientôt disponible"); }}
+          className="flex items-center justify-center gap-2 py-2.5 hover:bg-muted transition-colors"
+        >
+          <Video className="w-5 h-5 text-red-500" />
+          <span className="text-sm font-medium text-foreground">Direct</span>
+        </button>
+        <button
+          onClick={openPhoto}
+          className="flex items-center justify-center gap-2 py-2.5 hover:bg-muted transition-colors"
+        >
+          <ImageIcon className="w-5 h-5 text-green-500" />
+          <span className="text-sm font-medium text-foreground">Photo</span>
+        </button>
+        <button
+          onClick={() => toast.info("Reels bientôt disponible")}
+          className="flex items-center justify-center gap-2 py-2.5 hover:bg-muted transition-colors"
+        >
+          <Clapperboard className="w-5 h-5 text-purple-500" />
+          <span className="text-sm font-medium text-foreground">Reels</span>
+        </button>
+      </div>
+
+      {/* Publish bar (only when expanded) */}
+      {expanded && (
+        <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 border-t border-border">
           <button
             onClick={() => setShowEmoji(!showEmoji)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-muted transition-colors ${showEmoji ? "bg-muted text-primary" : "text-accent"}`}
           >
             <Smile className="w-5 h-5" /> Emoji
           </button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setExpanded(false); removeImage(); setContent(""); setShowEmoji(false); }}
+            >
+              Annuler
+            </Button>
+            <Button
+              size="sm"
+              onClick={handlePublish}
+              disabled={(!content.trim() && !imageFile) || isPublishing}
+              className="rounded-lg px-5"
+            >
+              {isPublishing ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+              ) : (
+                <Send className="w-4 h-4 mr-1" />
+              )}
+              Publier
+            </Button>
+          </div>
         </div>
-        <Button
-          size="sm"
-          onClick={handlePublish}
-          disabled={(!content.trim() && !imageFile) || isPublishing}
-          className="rounded-lg px-5"
-        >
-          {isPublishing ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-1" />
-          ) : (
-            <Send className="w-4 h-4 mr-1" />
-          )}
-          Publier
-        </Button>
-      </div>
+      )}
     </div>
   );
 };
