@@ -92,17 +92,21 @@ const StoriesBar = ({ userAvatar }: StoriesBarProps) => {
 
   return (
     <>
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+      <div className="flex gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide snap-x snap-mandatory">
         <button
           onClick={() => setCreateOpen(true)}
-          className="relative shrink-0 w-28 h-48 rounded-xl overflow-hidden bg-card border border-border shadow-sm group snap-start hover:shadow-md transition-shadow"
+          className="relative shrink-0 w-[110px] h-[200px] rounded-2xl overflow-hidden bg-card border border-border shadow-sm group snap-start hover:shadow-md transition-shadow"
         >
-          <img src={userAvatar} alt="Créer" className="w-full h-3/4 object-cover group-hover:scale-105 transition-transform duration-300" />
-          <div className="absolute bottom-0 inset-x-0 h-1/4 bg-card flex flex-col items-center justify-center pt-4">
-            <div className="absolute top-0 -translate-y-1/2 w-9 h-9 bg-primary rounded-full flex items-center justify-center border-4 border-card">
-              <Plus className="w-5 h-5 text-primary-foreground" />
+          {userAvatar ? (
+            <img src={userAvatar} alt="Créer" className="w-full h-[70%] object-cover group-hover:scale-105 transition-transform duration-300" />
+          ) : (
+            <div className="w-full h-[70%] bg-gradient-to-br from-primary/30 to-primary/10" />
+          )}
+          <div className="absolute bottom-0 inset-x-0 h-[30%] bg-card flex flex-col items-center justify-end pb-2">
+            <div className="absolute top-0 -translate-y-1/2 w-9 h-9 bg-primary rounded-full flex items-center justify-center border-4 border-card shadow">
+              <Plus className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
             </div>
-            <span className="text-xs font-semibold text-foreground mt-1">Créer</span>
+            <span className="text-[13px] font-semibold text-foreground">Créer une story</span>
           </div>
         </button>
 
@@ -115,24 +119,24 @@ const StoriesBar = ({ userAvatar }: StoriesBarProps) => {
             <button
               key={g.user_id}
               onClick={() => setViewerIndex(i)}
-              className="relative shrink-0 w-28 h-48 rounded-xl overflow-hidden group cursor-pointer snap-start animate-fade-in"
+              className="relative shrink-0 w-[110px] h-[200px] rounded-2xl overflow-hidden group cursor-pointer snap-start animate-fade-in shadow-sm"
               style={{ animationDelay: `${i * 60}ms` }}
             >
               {cover.media_url ? (
                 <img src={cover.media_url} alt={g.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center p-2 text-white text-xs font-bold text-center" style={{ background: coverBg }}>
-                  {cover.text_content?.slice(0, 50)}
+                  {cover.text_content?.slice(0, 50) || g.name}
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className={`absolute top-3 left-3 p-0.5 rounded-full ${g.hasUnseen ? "bg-gradient-to-tr from-pink-500 via-primary to-blue-500" : "bg-muted"}`}>
-                <Avatar className="w-9 h-9 border-2 border-card">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className={`absolute top-2.5 left-2.5 p-[3px] rounded-full ${g.hasUnseen ? "bg-gradient-to-tr from-pink-500 via-primary to-blue-500" : "bg-muted"}`}>
+                <Avatar className="w-9 h-9 border-[3px] border-card">
                   <AvatarImage src={g.avatar} />
                   <AvatarFallback className="text-xs">{g.name[0]}</AvatarFallback>
                 </Avatar>
               </div>
-              <span className="absolute bottom-2 left-2 right-2 text-xs font-semibold text-white truncate">
+              <span className="absolute bottom-2 left-2 right-2 text-[13px] font-semibold text-white truncate drop-shadow">
                 {g.user_id === userId ? "Votre story" : g.name}
               </span>
             </button>
