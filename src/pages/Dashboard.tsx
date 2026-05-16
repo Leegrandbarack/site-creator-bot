@@ -62,9 +62,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted pb-14 lg:pb-0">
+    <div className="min-h-screen bg-muted">
       <DashboardNavbar user={user} />
-      <div className="pt-14 flex max-w-[1920px] mx-auto">
+      <div className="pt-[88px] lg:pt-14 flex max-w-[1920px] mx-auto">
         <aside className="hidden lg:block w-[280px] shrink-0 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto p-3">
           <LeftSidebar user={user} />
         </aside>
@@ -75,7 +75,6 @@ const Dashboard = () => {
           <RightSidebar />
         </aside>
       </div>
-      <MobileBottomNav />
     </div>
   );
 };
