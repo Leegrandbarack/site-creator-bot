@@ -75,7 +75,6 @@ const Dashboard = () => {
           <RightSidebar />
         </aside>
       </div>
-      <MobileBottomNav />
     </div>
   );
 };
