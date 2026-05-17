@@ -51,7 +51,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-muted">
       <DashboardNavbar user={userInfo} />
-      <div className="pt-14">
+      <div className="pt-[88px] lg:pt-14">
         <ProfileHeader
           profileUserId={profileUserId!}
           currentUserId={currentUserId}
