@@ -14,6 +14,7 @@ interface CreatePostProps {
 }
 
 const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
+  const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
