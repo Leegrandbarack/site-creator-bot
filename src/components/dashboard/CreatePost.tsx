@@ -100,10 +100,12 @@ const CreatePost = ({ user, userId, onPostCreated }: CreatePostProps) => {
     <div className="bg-card rounded-xl shadow-sm border border-border">
       {/* Top row : avatar + "Quoi de neuf ?" bubble */}
       <div className="flex items-center gap-3 px-3 sm:px-4 pt-3 pb-2">
-        <Avatar className="w-10 h-10 shrink-0">
-          <AvatarImage src={user.avatar} alt={user.name} />
-          <AvatarFallback>{user.firstName[0]}</AvatarFallback>
-        </Avatar>
+        <button onClick={() => navigate("/profile")} className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/40">
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarFallback>{user.firstName[0]}</AvatarFallback>
+          </Avatar>
+        </button>
         {expanded ? (
           <textarea
             ref={textareaRef}
