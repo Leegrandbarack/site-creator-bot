@@ -58,6 +58,12 @@ const DashboardNavbar = ({ user }: DashboardNavbarProps) => {
               <MessageCircle className="w-5 h-5" strokeWidth={2.5} />
               <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">5</span>
             </button>
+            <button onClick={() => navigate("/profile")} aria-label="Mon profil" className="rounded-full">
+              <Avatar className="w-9 h-9">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback>{user.firstName[0]}</AvatarFallback>
+              </Avatar>
+            </button>
           </div>
         </div>
         <div className="flex items-center justify-around px-1">
